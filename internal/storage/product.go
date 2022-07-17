@@ -51,6 +51,10 @@ func (p *Product) SetQuantity(quantity uint) error {
 	return nil
 }
 
+func (p Product) String() string {
+	return fmt.Sprintf("[%d] name:%s price:%d quantity:%d", p.id, p.name, p.price, p.quantity)
+}
+
 func NewProduct(name string, price uint, quantity uint) (*Product, error) {
 	p := Product{}
 	if err := p.SetName(name); err != nil {
