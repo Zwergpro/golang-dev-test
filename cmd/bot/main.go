@@ -1,7 +1,23 @@
 package main
 
-import "fmt"
+import (
+	"homework-1/internal/commander"
+	"log"
+	"os"
+)
 
 func main() {
-	fmt.Println("Hello World!")
+	tgApiKey := os.Getenv("TG_API_KEY")
+	if tgApiKey == "" {
+		log.Panic("TG_API_KEY env variable does not exist")
+	}
+
+	cmd, err := commander.Init(tgApiKey)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	if err = cmd.Run(); err != nil {
+		log.Panic(err)
+	}
 }
