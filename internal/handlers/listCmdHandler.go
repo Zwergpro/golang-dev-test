@@ -7,6 +7,11 @@ import (
 
 func listCmdHandler(_ string) string {
 	products := storage.List()
+
+	if len(products) == 0 {
+		return "Warehouse is empty"
+	}
+
 	res := make([]string, len(products))
 
 	for _, p := range products {
