@@ -19,6 +19,14 @@ func init() {
 	}
 }
 
+func Get(id uint) (*Product, error) {
+	product, ok := warehouse[id]
+	if ok {
+		return product, nil
+	}
+	return nil, errors.Wrap(ProductNotExists, strconv.FormatUint(uint64(id), 10))
+}
+
 func Add(p *Product) error {
 	if _, ok := warehouse[p.GetId()]; ok {
 		return errors.Wrap(ProductAlreadyExists, strconv.FormatUint(uint64(p.GetId()), 10))
