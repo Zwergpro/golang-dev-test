@@ -19,7 +19,7 @@ func updateCmdHandler(cmdArgs string) string {
 		return err.Error()
 	}
 
-	// Pass by value to escape partially update while error occurred
+	// Pass by value to escape partially update when error occurred
 	newProduct, err := updateProduct(*oldProduct, args[1:])
 	if err != nil {
 		return err.Error()

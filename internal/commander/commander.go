@@ -51,7 +51,6 @@ func (c *Commander) Run() error {
 			}
 		}
 
-		msg.ReplyToMessageID = update.Message.MessageID
 		_, err := c.bot.Send(msg)
 		if err != nil {
 			return errors.Wrap(err, "failed to send message")
