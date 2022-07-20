@@ -69,8 +69,27 @@ func addCmdHandler(cmdArgs string) string {
 	return fmt.Sprintf("Product added: %s", product.String())
 }
 
+func deleteCmdHandler(cmdArgs string) string {
+	args := strings.Split(cmdArgs, " ")
+	if len(args) != 1 {
+		return errors.Wrapf(BadArguments, "Invalid arguments count: %d. Require 1", len(args)).Error()
+	}
+
+	id, err := strconv.ParseUint(args[0], 10, 64)
+	if err != nil {
+		return errors.Wrapf(BadArguments, "Can't parse id: %s", args[0]).Error()
+	}
+
+	if err := storage.Delete(uint(id)); err != nil {
+		return err.Error()
+	}
+
+	return fmt.Sprintf("Deleted: %d", id)
+}
+
 func AddHandlers(c *commander.Commander) {
 	c.RegisterHandler(helpCmd, helpCmdHandler)
 	c.RegisterHandler(listCmd, listCmdHandler)
 	c.RegisterHandler(addCmd, addCmdHandler)
+	c.RegisterHandler(deleteCmd, deleteCmdHandler)
 }
