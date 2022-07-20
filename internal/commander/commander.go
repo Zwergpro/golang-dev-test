@@ -1,13 +1,17 @@
 package commander
 
 import (
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
 	"log"
 )
 
+type CmdHandler func(string) string
+
 type Commander struct {
-	bot *tgbotapi.BotAPI
+	bot    *tgbotapi.BotAPI
+	router map[string]CmdHandler
 }
 
 func Init(tgApiKey string) (*Commander, error) {
@@ -21,7 +25,8 @@ func Init(tgApiKey string) (*Commander, error) {
 	log.Printf("Authorized on account: %s", bot.Self.UserName)
 
 	return &Commander{
-		bot: bot,
+		bot:    bot,
+		router: make(map[string]CmdHandler),
 	}, nil
 }
 
@@ -37,6 +42,15 @@ func (c *Commander) Run() error {
 		}
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+		if update.Message.Command() != "" {
+			cmd, ok := c.router[update.Message.Command()]
+			if ok {
+				msg.Text = cmd(update.Message.CommandArguments())
+			} else {
+				msg.Text = fmt.Sprintf("Invalid command: %v", update.Message.Command())
+			}
+		}
+
 		msg.ReplyToMessageID = update.Message.MessageID
 		_, err := c.bot.Send(msg)
 		if err != nil {
@@ -46,4 +60,8 @@ func (c *Commander) Run() error {
 	}
 
 	return nil
+}
+
+func (c *Commander) RegisterHandler(cmd string, handler CmdHandler) {
+	c.router[cmd] = handler
 }

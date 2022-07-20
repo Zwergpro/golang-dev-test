@@ -2,6 +2,7 @@ package main
 
 import (
 	"homework-1/internal/commander"
+	"homework-1/internal/handlers"
 	"log"
 	"os"
 )
@@ -16,6 +17,8 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	handlers.AddHandlers(cmd)
 
 	if err = cmd.Run(); err != nil {
 		log.Panic(err)
