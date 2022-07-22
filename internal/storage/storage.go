@@ -15,7 +15,7 @@ func init() {
 	warehouse = make(map[uint]*Product)
 	product, _ := NewProduct("pillow", 500, 10)
 	if err := Add(product); err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 }
 

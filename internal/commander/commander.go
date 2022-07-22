@@ -43,8 +43,7 @@ func (c *Commander) Run() error {
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 		if update.Message.Command() != "" {
-			cmd, ok := c.router[update.Message.Command()]
-			if ok {
+			if cmd, ok := c.router[update.Message.Command()]; ok {
 				msg.Text = cmd(update.Message.CommandArguments())
 			} else {
 				msg.Text = fmt.Sprintf("Invalid command: %v", update.Message.Command())
