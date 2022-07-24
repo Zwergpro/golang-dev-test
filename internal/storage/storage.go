@@ -6,20 +6,28 @@ import (
 	"strconv"
 )
 
-var warehouse map[uint]*Product
+var warehouse map[uint64]*Product
 
 var ProductAlreadyExists = errors.New("product already exists")
 var ProductNotExists = errors.New("product does not exist")
 
+type Interface interface {
+	Add(p *Product) error
+	Get(id uint64) (*Product, error)
+	Update(p *Product) error
+	Delete(id uint64) error
+	List() []*Product
+}
+
 func init() {
-	warehouse = make(map[uint]*Product)
+	warehouse = make(map[uint64]*Product)
 	product, _ := NewProduct("pillow", 500, 10)
 	if err := Add(product); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func Get(id uint) (*Product, error) {
+func Get(id uint64) (*Product, error) {
 	product, ok := warehouse[id]
 	if ok {
 		return product, nil
@@ -35,9 +43,9 @@ func Add(p *Product) error {
 	return nil
 }
 
-func Delete(id uint) error {
+func Delete(id uint64) error {
 	if _, ok := warehouse[id]; !ok {
-		return errors.Wrap(ProductNotExists, strconv.FormatUint(uint64(id), 10))
+		return errors.Wrap(ProductNotExists, strconv.FormatUint(id, 10))
 	}
 	delete(warehouse, id)
 	return nil

@@ -19,7 +19,7 @@ func deleteCmdHandler(cmdArgs string) string {
 		return errors.Wrapf(BadArguments, "Can't parse id: %s", args[0]).Error()
 	}
 
-	if err = storage.Delete(uint(id)); err != nil {
+	if err = storage.Delete(id); err != nil {
 		return err.Error()
 	}
 

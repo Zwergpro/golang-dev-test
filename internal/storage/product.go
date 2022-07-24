@@ -2,16 +2,16 @@ package storage
 
 import "fmt"
 
-var lastId = uint(0)
+var lastId = uint64(0)
 
 type Product struct {
-	id       uint
+	id       uint64
 	name     string
-	price    uint
-	quantity uint
+	price    uint64
+	quantity uint64
 }
 
-func (p Product) GetId() uint {
+func (p Product) GetId() uint64 {
 	return p.id
 }
 
@@ -27,11 +27,11 @@ func (p *Product) SetName(name string) error {
 	return nil
 }
 
-func (p Product) GetPrice() uint {
+func (p Product) GetPrice() uint64 {
 	return p.price
 }
 
-func (p *Product) SetPrice(price uint) error {
+func (p *Product) SetPrice(price uint64) error {
 	if price == 0 {
 		return fmt.Errorf("price must be greater than 0")
 	}
@@ -39,11 +39,11 @@ func (p *Product) SetPrice(price uint) error {
 	return nil
 }
 
-func (p Product) GetQuantity() uint {
+func (p Product) GetQuantity() uint64 {
 	return p.quantity
 }
 
-func (p *Product) SetQuantity(quantity uint) error {
+func (p *Product) SetQuantity(quantity uint64) error {
 	if quantity == 0 {
 		return fmt.Errorf("quantity must be greater than 0")
 	}
@@ -55,7 +55,7 @@ func (p Product) String() string {
 	return fmt.Sprintf("[%d] name:%s price:%d quantity:%d", p.id, p.name, p.price, p.quantity)
 }
 
-func NewProduct(name string, price uint, quantity uint) (*Product, error) {
+func NewProduct(name string, price uint64, quantity uint64) (*Product, error) {
 	p := Product{}
 	if err := p.SetName(name); err != nil {
 		return nil, err

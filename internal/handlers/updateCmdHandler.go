@@ -37,7 +37,7 @@ func getProductByStringId(id string) (*storage.Product, error) {
 		return nil, errors.Wrapf(BadArguments, "Can't parse id: %s", id)
 	}
 
-	product, err := storage.Get(uint(productId))
+	product, err := storage.Get(productId)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func updateProduct(product storage.Product, params []string) (*storage.Product, 
 	if err != nil {
 		return nil, errors.Wrapf(BadArguments, "Can't parse price: %s", params[1])
 	}
-	if err = product.SetPrice(uint(price)); err != nil {
+	if err = product.SetPrice(price); err != nil {
 		return nil, err
 	}
 
@@ -62,7 +62,7 @@ func updateProduct(product storage.Product, params []string) (*storage.Product, 
 	if err != nil {
 		return nil, errors.Wrapf(BadArguments, "Can't parse quantity: %s", params[2])
 	}
-	if err = product.SetQuantity(uint(quantity)); err != nil {
+	if err = product.SetQuantity(quantity); err != nil {
 		return nil, err
 	}
 
