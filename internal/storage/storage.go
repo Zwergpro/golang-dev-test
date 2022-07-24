@@ -4,15 +4,9 @@ import (
 	"github.com/pkg/errors"
 	"log"
 	"strconv"
-	"sync"
 )
 
-type Warehouse struct {
-	mu      sync.RWMutex
-	storage map[uint64]*Product
-}
-
-var warehouse Warehouse
+var warehouse *Warehouse
 
 var (
 	ProductAlreadyExists = errors.New("product already exists")
@@ -20,9 +14,7 @@ var (
 )
 
 func init() {
-	warehouse = Warehouse{
-		storage: make(map[uint64]*Product),
-	}
+	warehouse = NewWarehouse()
 
 	product, _ := NewProduct("pillow", 500, 10)
 	if err := Add(product); err != nil {
@@ -31,8 +23,8 @@ func init() {
 }
 
 func Get(id uint64) (*Product, error) {
-	warehouse.mu.RLock()
-	defer warehouse.mu.RUnlock()
+	warehouse.RLock()
+	defer warehouse.RUnlock()
 
 	product, ok := warehouse.storage[id]
 	if ok {
@@ -42,8 +34,8 @@ func Get(id uint64) (*Product, error) {
 }
 
 func Add(p *Product) error {
-	warehouse.mu.Lock()
-	defer warehouse.mu.Unlock()
+	warehouse.Lock()
+	defer warehouse.Unlock()
 
 	if _, ok := warehouse.storage[p.GetId()]; ok {
 		return errors.Wrap(ProductAlreadyExists, strconv.FormatUint(p.GetId(), 10))
@@ -53,8 +45,8 @@ func Add(p *Product) error {
 }
 
 func Delete(id uint64) error {
-	warehouse.mu.Lock()
-	defer warehouse.mu.Unlock()
+	warehouse.Lock()
+	defer warehouse.Unlock()
 
 	if _, ok := warehouse.storage[id]; !ok {
 		return errors.Wrap(ProductNotExists, strconv.FormatUint(id, 10))
@@ -64,7 +56,7 @@ func Delete(id uint64) error {
 }
 
 func Update(p *Product) error {
-	warehouse.mu.Lock()
+	warehouse.Lock()
 	defer warehouse.mu.Unlock()
 
 	if _, ok := warehouse.storage[p.GetId()]; !ok {
@@ -75,8 +67,8 @@ func Update(p *Product) error {
 }
 
 func List() []*Product {
-	warehouse.mu.RLock()
-	defer warehouse.mu.RUnlock()
+	warehouse.RLock()
+	defer warehouse.RUnlock()
 
 	products := make([]*Product, 0, len(warehouse.storage))
 	for _, v := range warehouse.storage {
