@@ -1,6 +1,9 @@
 package storage
 
-import "fmt"
+import (
+	"fmt"
+	"sync/atomic"
+)
 
 var lastId = uint64(0)
 
@@ -67,7 +70,6 @@ func NewProduct(name string, price uint64, quantity uint64) (*Product, error) {
 		return nil, err
 	}
 
-	lastId++
-	p.id = lastId
+	p.id = atomic.AddUint64(&lastId, 1)
 	return &p, nil
 }
