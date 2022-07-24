@@ -11,14 +11,6 @@ var warehouse map[uint64]*Product
 var ProductAlreadyExists = errors.New("product already exists")
 var ProductNotExists = errors.New("product does not exist")
 
-type Interface interface {
-	Add(p *Product) error
-	Get(id uint64) (*Product, error)
-	Update(p *Product) error
-	Delete(id uint64) error
-	List() []*Product
-}
-
 func init() {
 	warehouse = make(map[uint64]*Product)
 	product, _ := NewProduct("pillow", 500, 10)
