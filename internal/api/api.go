@@ -66,12 +66,13 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 }
 
 func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRequest) (*pb.ProductUpdateResponse, error) {
-	p, err := storage.Get(in.GetId())
+	oldProduct, err := storage.Get(in.GetId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	// TODO: не обновлять, если есть ошибка
+	p := oldProduct.Copy()
+
 	if err = p.SetName(in.GetName()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}

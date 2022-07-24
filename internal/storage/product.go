@@ -58,6 +58,15 @@ func (p Product) String() string {
 	return fmt.Sprintf("[%d] name:%s price:%d quantity:%d", p.id, p.name, p.price, p.quantity)
 }
 
+func (p *Product) Copy() *Product {
+	return &Product{
+		id:       p.id,
+		name:     p.name,
+		price:    p.price,
+		quantity: p.quantity,
+	}
+}
+
 func NewProduct(name string, price uint64, quantity uint64) (*Product, error) {
 	p := Product{}
 	if err := p.SetName(name); err != nil {
