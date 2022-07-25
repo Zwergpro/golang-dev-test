@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 )
 
-var lastId = uint64(0)
+var lastId uint64 = 0
 
 type Product struct {
 	id       uint64
