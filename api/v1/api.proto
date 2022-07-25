@@ -3,6 +3,8 @@ syntax = "proto3";
 package api.v1;
 option go_package = "homework-1/pkg/api;api";
 
+import "v1/google/api/annotations.proto";
+
 service AdminService {
   rpc ProductList(ProductListRequest) returns (ProductListResponse) {}
   rpc ProductGet(ProductGetRequest) returns (ProductGetResponse) {}
