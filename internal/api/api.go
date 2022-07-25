@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"homework-1/internal/storage"
@@ -37,7 +38,10 @@ func (i *implementation) ProductList(_ context.Context, _ *pb.ProductListRequest
 func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest) (*pb.ProductGetResponse, error) {
 	p, err := storage.Get(in.GetId())
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+		if errors.As(err, &storage.ProductNotExists) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &pb.ProductGetResponse{
 		Id:       p.GetId(),
@@ -54,7 +58,10 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 	}
 
 	if err = storage.Add(p); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+		if errors.As(err, &storage.ProductAlreadyExists) {
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &pb.ProductCreateResponse{
@@ -68,7 +75,10 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRequest) (*pb.ProductUpdateResponse, error) {
 	oldProduct, err := storage.Get(in.GetId())
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+		if errors.As(err, &storage.ProductNotExists) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	p := oldProduct.Copy()
@@ -86,7 +96,10 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 	}
 
 	if err = storage.Update(p); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+		if errors.As(err, &storage.ProductNotExists) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &pb.ProductUpdateResponse{
@@ -99,7 +112,10 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 
 func (i *implementation) ProductDelete(_ context.Context, in *pb.ProductDeleteRequest) (*pb.ProductDeleteResponse, error) {
 	if err := storage.Delete(in.GetId()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+		if errors.As(err, &storage.ProductNotExists) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &pb.ProductDeleteResponse{}, nil
 }
