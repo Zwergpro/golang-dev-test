@@ -24,7 +24,7 @@ func addCmdHandler(cmdArgs string) string {
 		return errors.Wrapf(BadArguments, "Can't parse quantity: %s", params[2]).Error()
 	}
 
-	product, err := storage.NewProduct(params[0], uint(price), uint(quantity))
+	product, err := storage.NewProduct(params[0], price, quantity)
 	if err != nil {
 		return err.Error()
 	}
