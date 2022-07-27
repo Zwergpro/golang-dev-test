@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const maxWaitMillisecond = time.Millisecond * 27
+const maxTimeout = time.Millisecond * 27
 
 var warehouse *Warehouse
 
@@ -27,8 +27,7 @@ func init() {
 }
 
 func Get(id uint64) (*Product, error) {
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, maxWaitMillisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
 	if err := warehouse.RLockWithContext(ctx); err != nil {
@@ -44,8 +43,7 @@ func Get(id uint64) (*Product, error) {
 }
 
 func Add(p *Product) error {
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, maxWaitMillisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
 	if err := warehouse.LockWithContext(ctx); err != nil {
@@ -61,8 +59,7 @@ func Add(p *Product) error {
 }
 
 func Delete(id uint64) error {
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, maxWaitMillisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
 	if err := warehouse.LockWithContext(ctx); err != nil {
@@ -78,8 +75,7 @@ func Delete(id uint64) error {
 }
 
 func Update(p *Product) error {
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, maxWaitMillisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
 	if err := warehouse.LockWithContext(ctx); err != nil {
@@ -95,11 +91,10 @@ func Update(p *Product) error {
 }
 
 func List() ([]*Product, error) {
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, maxWaitMillisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	if err := warehouse.LockWithContext(ctx); err != nil {
+	if err := warehouse.RLockWithContext(ctx); err != nil {
 		return nil, err
 	}
 	defer warehouse.RUnlock()

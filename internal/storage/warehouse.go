@@ -47,8 +47,8 @@ func (w *Warehouse) LockWithContext(ctx context.Context) error {
 		return ctx.Err()
 	case w.accessPool <- struct{}{}:
 		w.mu.Lock()
+		return nil
 	}
-	return nil
 }
 
 func (w *Warehouse) RLockWithContext(ctx context.Context) error {
@@ -57,6 +57,6 @@ func (w *Warehouse) RLockWithContext(ctx context.Context) error {
 		return ctx.Err()
 	case w.accessPool <- struct{}{}:
 		w.mu.RLock()
+		return nil
 	}
-	return nil
 }
