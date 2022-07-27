@@ -1,6 +1,9 @@
 package storage
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 const accessPoolSize = 10
 
@@ -36,4 +39,24 @@ func (w *Warehouse) RLock() {
 func (w *Warehouse) RUnlock() {
 	w.mu.RUnlock()
 	<-w.accessPool
+}
+
+func (w *Warehouse) LockWithContext(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case w.accessPool <- struct{}{}:
+		w.mu.Lock()
+	}
+	return nil
+}
+
+func (w *Warehouse) RLockWithContext(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case w.accessPool <- struct{}{}:
+		w.mu.RLock()
+	}
+	return nil
 }

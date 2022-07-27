@@ -18,7 +18,10 @@ type implementation struct {
 }
 
 func (i *implementation) ProductList(_ context.Context, _ *pb.ProductListRequest) (*pb.ProductListResponse, error) {
-	products := storage.List()
+	products, err := storage.List()
+	if err != nil {
+		return nil, err
+	}
 
 	result := make([]*pb.ProductListResponse_Product, 0, len(products))
 	for _, product := range products {
