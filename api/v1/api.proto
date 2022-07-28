@@ -3,12 +3,36 @@ syntax = "proto3";
 package api.v1;
 option go_package = "homework-1/pkg/api;api";
 
+import "google/api/annotations.proto";
+
 service AdminService {
-  rpc ProductList(ProductListRequest) returns (ProductListResponse) {}
-  rpc ProductGet(ProductGetRequest) returns (ProductGetResponse) {}
-  rpc ProductCreate(ProductCreateRequest) returns (ProductCreateResponse) {}
-  rpc ProductUpdate(ProductUpdateRequest) returns (ProductUpdateResponse) {}
-  rpc ProductDelete(ProductDeleteRequest) returns (ProductDeleteResponse) {}
+  rpc ProductList(ProductListRequest) returns (ProductListResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users"
+    };
+  }
+  rpc ProductGet(ProductGetRequest) returns (ProductGetResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users/{id}"
+    };
+  }
+  rpc ProductCreate(ProductCreateRequest) returns (ProductCreateResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users"
+      body: "*"
+    };
+  }
+  rpc ProductUpdate(ProductUpdateRequest) returns (ProductUpdateResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/users/{id}"
+      body: "*"
+    };
+  }
+  rpc ProductDelete(ProductDeleteRequest) returns (ProductDeleteResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/users/{id}"
+    };
+  }
 }
 
 

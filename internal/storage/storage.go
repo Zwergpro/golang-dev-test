@@ -1,10 +1,14 @@
 package storage
 
 import (
+	"context"
 	"github.com/pkg/errors"
 	"log"
 	"strconv"
+	"time"
 )
+
+const maxTimeout = time.Millisecond * 27
 
 var warehouse *Warehouse
 
@@ -23,7 +27,12 @@ func init() {
 }
 
 func Get(id uint64) (*Product, error) {
-	warehouse.RLock()
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	if err := warehouse.RLockWithContext(ctx); err != nil {
+		return nil, err
+	}
 	defer warehouse.RUnlock()
 
 	product, ok := warehouse.storage[id]
@@ -34,7 +43,12 @@ func Get(id uint64) (*Product, error) {
 }
 
 func Add(p *Product) error {
-	warehouse.Lock()
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	if err := warehouse.LockWithContext(ctx); err != nil {
+		return err
+	}
 	defer warehouse.Unlock()
 
 	if _, ok := warehouse.storage[p.GetId()]; ok {
@@ -45,7 +59,12 @@ func Add(p *Product) error {
 }
 
 func Delete(id uint64) error {
-	warehouse.Lock()
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	if err := warehouse.LockWithContext(ctx); err != nil {
+		return err
+	}
 	defer warehouse.Unlock()
 
 	if _, ok := warehouse.storage[id]; !ok {
@@ -56,7 +75,12 @@ func Delete(id uint64) error {
 }
 
 func Update(p *Product) error {
-	warehouse.Lock()
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	if err := warehouse.LockWithContext(ctx); err != nil {
+		return err
+	}
 	defer warehouse.mu.Unlock()
 
 	if _, ok := warehouse.storage[p.GetId()]; !ok {
@@ -66,13 +90,18 @@ func Update(p *Product) error {
 	return nil
 }
 
-func List() []*Product {
-	warehouse.RLock()
+func List() ([]*Product, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	if err := warehouse.RLockWithContext(ctx); err != nil {
+		return nil, err
+	}
 	defer warehouse.RUnlock()
 
 	products := make([]*Product, 0, len(warehouse.storage))
 	for _, v := range warehouse.storage {
 		products = append(products, v)
 	}
-	return products
+	return products, nil
 }

@@ -6,7 +6,10 @@ import (
 )
 
 func listCmdHandler(_ string) string {
-	products := storage.List()
+	products, err := storage.List()
+	if err != nil {
+		return err.Error()
+	}
 
 	if len(products) == 0 {
 		return "Warehouse is empty"

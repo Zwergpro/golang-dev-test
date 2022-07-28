@@ -1,0 +1,31 @@
+
+### List
+GET localhost:8081/api/v1/users
+
+
+### Get
+GET localhost:8081/api/v1/users/1
+
+
+### Create
+POST localhost:8081/api/v1/users
+
+{
+  "name": "NewProduct2",
+  "price": 3,
+  "quantity": 100
+}
+
+
+### Update
+PUT localhost:8081/api/v1/users/1
+
+{
+  "name": "newPillow",
+  "price": "50",
+  "quantity": "20"
+}
+
+
+### Delete
+DELETE localhost:8081/api/v1/users/1
