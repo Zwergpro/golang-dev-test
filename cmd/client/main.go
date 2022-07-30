@@ -20,6 +20,18 @@ func main() {
 	ctx := context.Background()
 	productId := uint64(1)
 
+	createProductRequest := pb.ProductCreateRequest{
+		Name:     "first product",
+		Price:    23,
+		Quantity: 7,
+	}
+	if response, err := client.ProductCreate(ctx, &createProductRequest); err != nil {
+		log.Fatal(err)
+	} else {
+		log.Printf("create: %v \n", response)
+		productId = response.GetId()
+	}
+
 	if response, err := client.ProductList(ctx, &pb.ProductListRequest{}); err != nil {
 		log.Fatal(err)
 	} else {
@@ -32,8 +44,8 @@ func main() {
 		log.Printf("get: %v \n", response)
 	}
 
-	createProductRequest := pb.ProductCreateRequest{
-		Name:     "new product",
+	createProductRequest = pb.ProductCreateRequest{
+		Name:     "second product",
 		Price:    100,
 		Quantity: 10,
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"google.golang.org/grpc"
 	"homework-1/internal/api"
+	localRepository "homework-1/internal/repository/local"
 	pb "homework-1/pkg/api/v1"
 	"log"
 	"net"
@@ -15,7 +16,12 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterAdminServiceServer(grpcServer, api.New())
+
+	deps := api.Deps{
+		ProductRepository: localRepository.NewRepository(),
+	}
+
+	pb.RegisterAdminServiceServer(grpcServer, api.New(deps))
 
 	if err = grpcServer.Serve(listener); err != nil {
 		log.Fatal(err)

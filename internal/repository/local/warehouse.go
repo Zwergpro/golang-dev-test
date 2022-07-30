@@ -1,24 +1,32 @@
-package storage
+package repository
 
 import (
 	"context"
+	"homework-1/internal/models"
 	"sync"
+	"sync/atomic"
 )
 
 const accessPoolSize = 10
 
 type Warehouse struct {
-	mu      sync.RWMutex
-	storage map[uint64]*Product
-
+	mu         sync.RWMutex
+	storage    map[uint64]*models.Product
 	accessPool chan struct{}
+
+	lastProductId uint64
 }
 
 func NewWarehouse() *Warehouse {
 	return &Warehouse{
-		storage:    make(map[uint64]*Product),
-		accessPool: make(chan struct{}, accessPoolSize),
+		storage:       make(map[uint64]*models.Product),
+		accessPool:    make(chan struct{}, accessPoolSize),
+		lastProductId: 0,
 	}
+}
+
+func (w *Warehouse) GetNextId() uint64 {
+	return atomic.AddUint64(&w.lastProductId, 1)
 }
 
 func (w *Warehouse) Lock() {

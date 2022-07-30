@@ -5,20 +5,34 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"homework-1/internal/storage"
+	"homework-1/internal/models"
+	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/v1"
+	"time"
 )
 
-func New() pb.AdminServiceServer {
-	return &implementation{}
+const maxTimeout = time.Millisecond * 27
+
+func New(deps Deps) pb.AdminServiceServer {
+	return &implementation{
+		deps: deps,
+	}
 }
 
 type implementation struct {
 	pb.UnimplementedAdminServiceServer
+	deps Deps
+}
+
+type Deps struct {
+	ProductRepository repository.Product
 }
 
 func (i *implementation) ProductList(_ context.Context, _ *pb.ProductListRequest) (*pb.ProductListResponse, error) {
-	products, err := storage.List()
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	products, err := i.deps.ProductRepository.GetAllProducts(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +53,12 @@ func (i *implementation) ProductList(_ context.Context, _ *pb.ProductListRequest
 }
 
 func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest) (*pb.ProductGetResponse, error) {
-	p, err := storage.Get(in.GetId())
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	p, err := i.deps.ProductRepository.GetProductById(ctx, in.GetId())
 	if err != nil {
-		if errors.As(err, &storage.ProductNotExists) {
+		if errors.As(err, &repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
@@ -55,36 +72,41 @@ func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest)
 }
 
 func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRequest) (*pb.ProductCreateResponse, error) {
-	p, err := storage.NewProduct(in.GetName(), in.GetPrice(), in.GetQuantity())
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	p, err := models.BuildProduct(in.GetName(), in.GetPrice(), in.GetQuantity())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	if err = storage.Add(p); err != nil {
-		if errors.As(err, &storage.ProductAlreadyExists) {
+	product, err := i.deps.ProductRepository.CreateProduct(ctx, *p)
+	if err != nil {
+		if errors.As(err, &repository.ProductAlreadyExists) {
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &pb.ProductCreateResponse{
-		Id:       p.GetId(),
-		Name:     p.GetName(),
-		Price:    p.GetPrice(),
-		Quantity: p.GetQuantity(),
+		Id:       product.GetId(),
+		Name:     product.GetName(),
+		Price:    product.GetPrice(),
+		Quantity: product.GetQuantity(),
 	}, nil
 }
 
 func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRequest) (*pb.ProductUpdateResponse, error) {
-	oldProduct, err := storage.Get(in.GetId())
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	p, err := i.deps.ProductRepository.GetProductById(ctx, in.GetId())
 	if err != nil {
-		if errors.As(err, &storage.ProductNotExists) {
+		if errors.As(err, &repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
-	p := oldProduct.Copy()
 
 	if err = p.SetName(in.GetName()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -98,8 +120,8 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	if err = storage.Update(p); err != nil {
-		if errors.As(err, &storage.ProductNotExists) {
+	if p, err = i.deps.ProductRepository.UpdateProduct(ctx, *p); err != nil {
+		if errors.As(err, &repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
@@ -114,8 +136,11 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 }
 
 func (i *implementation) ProductDelete(_ context.Context, in *pb.ProductDeleteRequest) (*pb.ProductDeleteResponse, error) {
-	if err := storage.Delete(in.GetId()); err != nil {
-		if errors.As(err, &storage.ProductNotExists) {
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	if err := i.deps.ProductRepository.DeleteProduct(ctx, in.GetId()); err != nil {
+		if errors.As(err, &repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
