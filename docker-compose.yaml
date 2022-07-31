@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - PGDATA=/data/postgres
+    volumes:
+      - ./pgdata:/data/postgres
+
+  pgbouncer:
+    image: edoburu/pgbouncer
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_NAME=postgres
+      - AUTH_TYPE=plain
+      - LISTEN_PORT=6432
+    ports:
+      - 6432:6432
+    depends_on:
+      - db
