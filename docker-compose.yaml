@@ -7,7 +7,8 @@ services:
       - POSTGRES_DB=postgres
       - PGDATA=/data/postgres
     volumes:
-      - ./pgdata:/data/postgres
+      - ./pgdata:/data/postgres\
+    restart: always
 
   pgbouncer:
     image: edoburu/pgbouncer
@@ -20,5 +21,6 @@ services:
       - LISTEN_PORT=6432
     ports:
       - 6432:6432
+    restart: always
     depends_on:
       - db
