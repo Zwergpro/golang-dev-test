@@ -3,6 +3,8 @@ package handlers
 import (
 	"github.com/pkg/errors"
 	"homework-1/internal/commander"
+	"homework-1/internal/repository"
+	"time"
 )
 
 const (
@@ -11,13 +13,15 @@ const (
 	updateCmd = "update"
 	deleteCmd = "delete"
 	listCmd   = "list"
+
+	maxTimeout = time.Millisecond * 30
 )
 
 var BadArguments = errors.New("bad arguments")
 
-func helpCmdHandler(_ string) string {
+func helpCmdHandler(_ repository.Product, _ string) string {
 	return `/help - list of commands
-/list - list of products
+/list [page] [size]  - list of products
 /add <name> <price> <quantity> - add new product
 /update <id> <name> <price> <quantity> - update product by id
 /delete <id> - delete product

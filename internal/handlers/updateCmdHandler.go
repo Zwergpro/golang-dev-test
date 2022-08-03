@@ -1,43 +1,48 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"homework-1/internal/storage"
+	"homework-1/internal/models"
+	"homework-1/internal/repository"
 	"strconv"
 	"strings"
 )
 
-func updateCmdHandler(cmdArgs string) string {
+func updateCmdHandler(repository repository.Product, cmdArgs string) string {
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
 	args := strings.Split(cmdArgs, " ")
 	if len(args) != 4 {
 		return errors.Wrapf(BadArguments, "Invalid arguments count: %d", len(args)).Error()
 	}
 
-	oldProduct, err := getProductByStringId(args[0])
+	product, err := getProductByStringId(ctx, repository, args[0])
 	if err != nil {
 		return err.Error()
 	}
 
-	// Pass by value to escape partially update when error occurred
-	newProduct, err := updateProduct(*oldProduct, args[1:])
+	product, err = updateProduct(product, args[1:])
 	if err != nil {
 		return err.Error()
 	}
 
-	if err = storage.Update(newProduct); err != nil {
+	product, err = repository.UpdateProduct(ctx, *product)
+	if err != nil {
 		return err.Error()
 	}
-	return fmt.Sprintf("Product updated: %s", newProduct.String())
+	return fmt.Sprintf("Product updated: %s", product.String())
 }
 
-func getProductByStringId(id string) (*storage.Product, error) {
+func getProductByStringId(ctx context.Context, repository repository.Product, id string) (*models.Product, error) {
 	productId, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		return nil, errors.Wrapf(BadArguments, "Can't parse id: %s", id)
 	}
 
-	product, err := storage.Get(productId)
+	product, err := repository.GetProductById(ctx, productId)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +50,7 @@ func getProductByStringId(id string) (*storage.Product, error) {
 	return product, nil
 }
 
-func updateProduct(product storage.Product, params []string) (*storage.Product, error) {
+func updateProduct(product *models.Product, params []string) (*models.Product, error) {
 	if err := product.SetName(params[0]); err != nil {
 		return nil, err
 	}
@@ -66,5 +71,5 @@ func updateProduct(product storage.Product, params []string) (*storage.Product, 
 		return nil, err
 	}
 
-	return &product, nil
+	return product, nil
 }

@@ -1,14 +1,16 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"homework-1/internal/storage"
+	"homework-1/internal/models"
+	"homework-1/internal/repository"
 	"strconv"
 	"strings"
 )
 
-func addCmdHandler(cmdArgs string) string {
+func addCmdHandler(repository repository.Product, cmdArgs string) string {
 	params := strings.Split(cmdArgs, " ")
 	if len(params) != 3 {
 		return errors.Wrapf(BadArguments, "Invalid arguments count: %d", len(params)).Error()
@@ -24,12 +26,16 @@ func addCmdHandler(cmdArgs string) string {
 		return errors.Wrapf(BadArguments, "Can't parse quantity: %s", params[2]).Error()
 	}
 
-	product, err := storage.NewProduct(params[0], price, quantity)
+	product, err := models.BuildProduct(params[0], price, quantity)
 	if err != nil {
 		return err.Error()
 	}
 
-	if err = storage.Add(product); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	product, err = repository.CreateProduct(ctx, *product)
+	if err != nil {
 		return err.Error()
 	}
 
