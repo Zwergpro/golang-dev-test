@@ -10,6 +10,8 @@ import (
 
 var psql = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
+var defaultProductsPageSize = uint64(20)
+
 func (r *Repository) GetProductById(ctx context.Context, id uint64) (*models.Product, error) {
 	query, args, err := psql.Select("id, name, price, quantity").
 		From("products").
@@ -77,9 +79,14 @@ func (r *Repository) UpdateProduct(ctx context.Context, product models.Product) 
 	return &product, nil
 }
 
-func (r *Repository) GetAllProducts(ctx context.Context) ([]*models.Product, error) {
+func (r *Repository) GetAllProducts(ctx context.Context, page uint64, size uint64) ([]*models.Product, error) {
+	limit, offset := r.getPaginationLimitAndOffset(page, size)
+
 	query, args, err := psql.Select("id, name, price, quantity").
 		From("products").
+		OrderBy("id").
+		Limit(limit).
+		Offset(offset).
 		ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("Repository.GetAllProducts: to sql: %w", err)
@@ -91,4 +98,17 @@ func (r *Repository) GetAllProducts(ctx context.Context) ([]*models.Product, err
 	}
 
 	return products, nil
+}
+
+func (r *Repository) getPaginationLimitAndOffset(page uint64, size uint64) (uint64, uint64) {
+	if page <= 0 {
+		page = 1 // min page number
+	}
+
+	if size <= 0 {
+		size = defaultProductsPageSize
+	}
+
+	offset := (page - 1) * size // first page does not have offset
+	return size, offset
 }

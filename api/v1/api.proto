@@ -40,7 +40,10 @@ service AdminService {
 // ProductList endpoint messages
 // ---------------------------------------------------------------------------------------------------------------------
 
-message ProductListRequest {}
+message ProductListRequest {
+    optional uint64 page = 1;
+    optional uint64 size = 2;
+}
 
 message ProductListResponse {
   repeated Product products = 1;

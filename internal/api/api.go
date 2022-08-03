@@ -8,6 +8,7 @@ import (
 	"homework-1/internal/models"
 	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/v1"
+	"log"
 	"time"
 )
 
@@ -28,11 +29,13 @@ type Deps struct {
 	ProductRepository repository.Product
 }
 
-func (i *implementation) ProductList(_ context.Context, _ *pb.ProductListRequest) (*pb.ProductListResponse, error) {
+func (i *implementation) ProductList(ctx context.Context, in *pb.ProductListRequest) (*pb.ProductListResponse, error) {
+	log.Printf("[INFO] ProductList: %v", in)
+
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	products, err := i.deps.ProductRepository.GetAllProducts(ctx)
+	products, err := i.deps.ProductRepository.GetAllProducts(ctx, in.GetPage(), in.GetSize())
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +56,8 @@ func (i *implementation) ProductList(_ context.Context, _ *pb.ProductListRequest
 }
 
 func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest) (*pb.ProductGetResponse, error) {
+	log.Printf("[INFO] ProductGet: %v", in)
+
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
@@ -72,6 +77,8 @@ func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest)
 }
 
 func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRequest) (*pb.ProductCreateResponse, error) {
+	log.Printf("[INFO] ProductCreate: %v", in)
+
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
@@ -97,6 +104,8 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 }
 
 func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRequest) (*pb.ProductUpdateResponse, error) {
+	log.Printf("[INFO] ProductUpdate: %v", in)
+
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
@@ -136,6 +145,8 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 }
 
 func (i *implementation) ProductDelete(_ context.Context, in *pb.ProductDeleteRequest) (*pb.ProductDeleteResponse, error) {
+	log.Printf("[INFO] ProductDelete: %v", in)
+
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 

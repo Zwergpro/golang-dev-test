@@ -19,6 +19,9 @@ func main() {
 
 	ctx := context.Background()
 	productId := uint64(1)
+	pageNum := uint64(0)
+	pageSize := uint64(4)
+	productListRequest := pb.ProductListRequest{Page: &pageNum, Size: &pageSize}
 
 	createProductRequest := pb.ProductCreateRequest{
 		Name:     "first product",
@@ -32,7 +35,7 @@ func main() {
 		productId = response.GetId()
 	}
 
-	if response, err := client.ProductList(ctx, &pb.ProductListRequest{}); err != nil {
+	if response, err := client.ProductList(ctx, &productListRequest); err != nil {
 		log.Fatal(err)
 	} else {
 		log.Printf("list: %v \n", response)
@@ -56,7 +59,7 @@ func main() {
 		productId = response.GetId()
 	}
 
-	if response, err := client.ProductList(ctx, &pb.ProductListRequest{}); err != nil {
+	if response, err := client.ProductList(ctx, &productListRequest); err != nil {
 		log.Fatal(err)
 	} else {
 		log.Printf("list: %v \n", response)
@@ -74,7 +77,7 @@ func main() {
 		log.Printf("update: %v \n", response)
 	}
 
-	if response, err := client.ProductList(ctx, &pb.ProductListRequest{}); err != nil {
+	if response, err := client.ProductList(ctx, &productListRequest); err != nil {
 		log.Fatal(err)
 	} else {
 		log.Printf("list: %v \n", response)
@@ -86,7 +89,7 @@ func main() {
 		log.Printf("delete: %v \n", response)
 	}
 
-	if response, err := client.ProductList(ctx, &pb.ProductListRequest{}); err != nil {
+	if response, err := client.ProductList(ctx, &productListRequest); err != nil {
 		log.Fatal(err)
 	} else {
 		log.Printf("list: %v \n", response)

@@ -10,21 +10,6 @@ import (
 	pb "homework-1/pkg/api/v1"
 	"log"
 	"net"
-	"time"
-)
-
-const (
-	// Database config
-	Host     = "localhost"
-	Port     = 6432
-	User     = "postgres"
-	Password = "postgres"
-	DBname   = "postgres"
-
-	MaxConnIdleTime = time.Minute
-	MaxConnLifetime = time.Hour
-	MinConns        = 2
-	MaxConns        = 4
 )
 
 func main() {
