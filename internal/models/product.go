@@ -3,10 +3,10 @@ package models
 import "fmt"
 
 type Product struct {
-	Id       uint64
-	Name     string
-	Price    uint64
-	Quantity uint64
+	Id       uint64 `db:"id"`
+	Name     string `db:"name"`
+	Price    uint64 `db:"price"`
+	Quantity uint64 `db:"quantity"`
 }
 
 func (p Product) GetId() uint64 {

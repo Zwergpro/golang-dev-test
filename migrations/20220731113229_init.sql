@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS public.products (
     id bigserial primary key,
     name varchar(255) not null,
     price bigint not null CONSTRAINT positive_product_price CHECK (price >= 0),
@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS products (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS public.products;
 -- +goose StatementEnd
