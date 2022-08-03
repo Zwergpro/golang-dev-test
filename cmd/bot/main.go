@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"homework-1/config"
 	"homework-1/internal/commander"
 	"homework-1/internal/handlers"
 	postgresRepository "homework-1/internal/repository/postgres"
@@ -20,7 +21,14 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	psqlConn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", Host, Port, User, Password, DBname)
+	psqlConn := fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		config.DBHost,
+		config.DBPort,
+		config.DBUser,
+		config.DBPassword,
+		config.DBName,
+	)
 
 	pool, err := pgxpool.Connect(ctx, psqlConn)
 	if err != nil {
@@ -28,15 +36,15 @@ func main() {
 	}
 	defer pool.Close()
 
-	if err := pool.Ping(ctx); err != nil {
+	if err = pool.Ping(ctx); err != nil {
 		log.Fatal("ping database error", err)
 	}
 
-	config := pool.Config()
-	config.MaxConnIdleTime = MaxConnIdleTime
-	config.MaxConnLifetime = MaxConnLifetime
-	config.MinConns = MinConns
-	config.MaxConns = MaxConns
+	poolConfig := pool.Config()
+	poolConfig.MaxConnIdleTime = config.DBMaxConnIdleTime
+	poolConfig.MaxConnLifetime = config.DBMaxConnLifetime
+	poolConfig.MinConns = config.DBMinConns
+	poolConfig.MaxConns = config.DBMaxConns
 
 	cmd, err := commander.Init(tgApiKey, postgresRepository.NewRepository(pool))
 	if err != nil {
