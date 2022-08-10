@@ -33,7 +33,7 @@ func run() error {
 
 	// init grpc gateway
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err = gw.RegisterAPIServiceHandlerFromEndpoint(ctx, mux, ":8080", opts)
+	err = gw.RegisterApiServiceHandlerFromEndpoint(ctx, mux, ":8080", opts)
 	if err != nil {
 		return errors.Wrap(err, "Can't init grpc gateway")
 	}
