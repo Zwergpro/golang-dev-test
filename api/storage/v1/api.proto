@@ -3,7 +3,7 @@ syntax = "proto3";
 package api.storage.v1;
 option go_package = "homework-1/pkg/storage;storage";
 
-service AdminService {
+service StorageService {
   rpc ProductList(ProductListRequest) returns (stream ProductListResponse) {}
   rpc ProductGet(ProductGetRequest) returns (ProductGetResponse) {}
   rpc ProductCreate(ProductCreateRequest) returns (ProductCreateResponse) {}
@@ -23,14 +23,10 @@ message ProductListRequest {
 }
 
 message ProductListResponse {
-  repeated Product products = 1;
-
-  message Product {
-    uint64 id = 1;
-    string name = 2;
-    uint64 price = 3;
-    uint64 quantity = 4;
-  }
+  uint64 id = 1;
+  string name = 2;
+  uint64 price = 3;
+  uint64 quantity = 4;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

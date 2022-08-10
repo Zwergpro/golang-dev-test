@@ -7,21 +7,21 @@ import (
 	"google.golang.org/grpc/status"
 	"homework-1/internal/models"
 	"homework-1/internal/repository"
-	pb "homework-1/pkg/api/v1"
+	pb "homework-1/pkg/api/storage/v1"
 	"log"
 	"time"
 )
 
 const maxTimeout = time.Millisecond * 27
 
-func New(deps Deps) pb.AdminServiceServer {
+func New(deps Deps) pb.StorageServiceServer {
 	return &implementation{
 		deps: deps,
 	}
 }
 
 type implementation struct {
-	pb.UnimplementedAdminServiceServer
+	pb.UnimplementedStorageServiceServer
 	deps Deps
 }
 
@@ -29,7 +29,7 @@ type Deps struct {
 	ProductRepository repository.Product
 }
 
-func (i *implementation) ProductList(ctx context.Context, in *pb.ProductListRequest) (*pb.ProductListResponse, error) {
+func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageService_ProductListServer) error {
 	log.Printf("[INFO] ProductList: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
@@ -38,22 +38,22 @@ func (i *implementation) ProductList(ctx context.Context, in *pb.ProductListRequ
 	products, err := i.deps.ProductRepository.GetAllProducts(ctx, in.GetPage(), in.GetSize())
 	if err != nil {
 		log.Printf("[ERROR] ProductList: %v\n", err)
-		return nil, status.Error(codes.Internal, "internal error")
+		return status.Error(codes.Internal, "internal error")
 	}
 
-	result := make([]*pb.ProductListResponse_Product, 0, len(products))
 	for _, product := range products {
-		result = append(result, &pb.ProductListResponse_Product{
+		productResponse := pb.ProductListResponse{
 			Id:       product.GetId(),
 			Name:     product.GetName(),
 			Price:    product.GetPrice(),
 			Quantity: product.GetQuantity(),
-		})
+		}
+		if err = srv.Send(&productResponse); err != nil {
+			log.Printf("[ERROR] ProductList send: %v\n", product)
+		}
 	}
 
-	return &pb.ProductListResponse{
-		Products: result,
-	}, nil
+	return nil
 }
 
 func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest) (*pb.ProductGetResponse, error) {

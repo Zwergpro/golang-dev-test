@@ -18,31 +18,31 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AdminServiceClient is the client API for AdminService service.
+// StorageServiceClient is the client API for StorageService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AdminServiceClient interface {
-	ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (AdminService_ProductListClient, error)
+type StorageServiceClient interface {
+	ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (StorageService_ProductListClient, error)
 	ProductGet(ctx context.Context, in *ProductGetRequest, opts ...grpc.CallOption) (*ProductGetResponse, error)
 	ProductCreate(ctx context.Context, in *ProductCreateRequest, opts ...grpc.CallOption) (*ProductCreateResponse, error)
 	ProductUpdate(ctx context.Context, in *ProductUpdateRequest, opts ...grpc.CallOption) (*ProductUpdateResponse, error)
 	ProductDelete(ctx context.Context, in *ProductDeleteRequest, opts ...grpc.CallOption) (*ProductDeleteResponse, error)
 }
 
-type adminServiceClient struct {
+type storageServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAdminServiceClient(cc grpc.ClientConnInterface) AdminServiceClient {
-	return &adminServiceClient{cc}
+func NewStorageServiceClient(cc grpc.ClientConnInterface) StorageServiceClient {
+	return &storageServiceClient{cc}
 }
 
-func (c *adminServiceClient) ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (AdminService_ProductListClient, error) {
-	stream, err := c.cc.NewStream(ctx, &AdminService_ServiceDesc.Streams[0], "/api.storage.v1.AdminService/ProductList", opts...)
+func (c *storageServiceClient) ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (StorageService_ProductListClient, error) {
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[0], "/api.storage.v1.StorageService/ProductList", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &adminServiceProductListClient{stream}
+	x := &storageServiceProductListClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -52,16 +52,16 @@ func (c *adminServiceClient) ProductList(ctx context.Context, in *ProductListReq
 	return x, nil
 }
 
-type AdminService_ProductListClient interface {
+type StorageService_ProductListClient interface {
 	Recv() (*ProductListResponse, error)
 	grpc.ClientStream
 }
 
-type adminServiceProductListClient struct {
+type storageServiceProductListClient struct {
 	grpc.ClientStream
 }
 
-func (x *adminServiceProductListClient) Recv() (*ProductListResponse, error) {
+func (x *storageServiceProductListClient) Recv() (*ProductListResponse, error) {
 	m := new(ProductListResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -69,207 +69,207 @@ func (x *adminServiceProductListClient) Recv() (*ProductListResponse, error) {
 	return m, nil
 }
 
-func (c *adminServiceClient) ProductGet(ctx context.Context, in *ProductGetRequest, opts ...grpc.CallOption) (*ProductGetResponse, error) {
+func (c *storageServiceClient) ProductGet(ctx context.Context, in *ProductGetRequest, opts ...grpc.CallOption) (*ProductGetResponse, error) {
 	out := new(ProductGetResponse)
-	err := c.cc.Invoke(ctx, "/api.storage.v1.AdminService/ProductGet", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.storage.v1.StorageService/ProductGet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *adminServiceClient) ProductCreate(ctx context.Context, in *ProductCreateRequest, opts ...grpc.CallOption) (*ProductCreateResponse, error) {
+func (c *storageServiceClient) ProductCreate(ctx context.Context, in *ProductCreateRequest, opts ...grpc.CallOption) (*ProductCreateResponse, error) {
 	out := new(ProductCreateResponse)
-	err := c.cc.Invoke(ctx, "/api.storage.v1.AdminService/ProductCreate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.storage.v1.StorageService/ProductCreate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *adminServiceClient) ProductUpdate(ctx context.Context, in *ProductUpdateRequest, opts ...grpc.CallOption) (*ProductUpdateResponse, error) {
+func (c *storageServiceClient) ProductUpdate(ctx context.Context, in *ProductUpdateRequest, opts ...grpc.CallOption) (*ProductUpdateResponse, error) {
 	out := new(ProductUpdateResponse)
-	err := c.cc.Invoke(ctx, "/api.storage.v1.AdminService/ProductUpdate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.storage.v1.StorageService/ProductUpdate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *adminServiceClient) ProductDelete(ctx context.Context, in *ProductDeleteRequest, opts ...grpc.CallOption) (*ProductDeleteResponse, error) {
+func (c *storageServiceClient) ProductDelete(ctx context.Context, in *ProductDeleteRequest, opts ...grpc.CallOption) (*ProductDeleteResponse, error) {
 	out := new(ProductDeleteResponse)
-	err := c.cc.Invoke(ctx, "/api.storage.v1.AdminService/ProductDelete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.storage.v1.StorageService/ProductDelete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AdminServiceServer is the server API for AdminService service.
-// All implementations must embed UnimplementedAdminServiceServer
+// StorageServiceServer is the server API for StorageService service.
+// All implementations must embed UnimplementedStorageServiceServer
 // for forward compatibility
-type AdminServiceServer interface {
-	ProductList(*ProductListRequest, AdminService_ProductListServer) error
+type StorageServiceServer interface {
+	ProductList(*ProductListRequest, StorageService_ProductListServer) error
 	ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error)
 	ProductCreate(context.Context, *ProductCreateRequest) (*ProductCreateResponse, error)
 	ProductUpdate(context.Context, *ProductUpdateRequest) (*ProductUpdateResponse, error)
 	ProductDelete(context.Context, *ProductDeleteRequest) (*ProductDeleteResponse, error)
-	mustEmbedUnimplementedAdminServiceServer()
+	mustEmbedUnimplementedStorageServiceServer()
 }
 
-// UnimplementedAdminServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedAdminServiceServer struct {
+// UnimplementedStorageServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedStorageServiceServer struct {
 }
 
-func (UnimplementedAdminServiceServer) ProductList(*ProductListRequest, AdminService_ProductListServer) error {
+func (UnimplementedStorageServiceServer) ProductList(*ProductListRequest, StorageService_ProductListServer) error {
 	return status.Errorf(codes.Unimplemented, "method ProductList not implemented")
 }
-func (UnimplementedAdminServiceServer) ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error) {
+func (UnimplementedStorageServiceServer) ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductGet not implemented")
 }
-func (UnimplementedAdminServiceServer) ProductCreate(context.Context, *ProductCreateRequest) (*ProductCreateResponse, error) {
+func (UnimplementedStorageServiceServer) ProductCreate(context.Context, *ProductCreateRequest) (*ProductCreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductCreate not implemented")
 }
-func (UnimplementedAdminServiceServer) ProductUpdate(context.Context, *ProductUpdateRequest) (*ProductUpdateResponse, error) {
+func (UnimplementedStorageServiceServer) ProductUpdate(context.Context, *ProductUpdateRequest) (*ProductUpdateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductUpdate not implemented")
 }
-func (UnimplementedAdminServiceServer) ProductDelete(context.Context, *ProductDeleteRequest) (*ProductDeleteResponse, error) {
+func (UnimplementedStorageServiceServer) ProductDelete(context.Context, *ProductDeleteRequest) (*ProductDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductDelete not implemented")
 }
-func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
+func (UnimplementedStorageServiceServer) mustEmbedUnimplementedStorageServiceServer() {}
 
-// UnsafeAdminServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AdminServiceServer will
+// UnsafeStorageServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to StorageServiceServer will
 // result in compilation errors.
-type UnsafeAdminServiceServer interface {
-	mustEmbedUnimplementedAdminServiceServer()
+type UnsafeStorageServiceServer interface {
+	mustEmbedUnimplementedStorageServiceServer()
 }
 
-func RegisterAdminServiceServer(s grpc.ServiceRegistrar, srv AdminServiceServer) {
-	s.RegisterService(&AdminService_ServiceDesc, srv)
+func RegisterStorageServiceServer(s grpc.ServiceRegistrar, srv StorageServiceServer) {
+	s.RegisterService(&StorageService_ServiceDesc, srv)
 }
 
-func _AdminService_ProductList_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _StorageService_ProductList_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ProductListRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(AdminServiceServer).ProductList(m, &adminServiceProductListServer{stream})
+	return srv.(StorageServiceServer).ProductList(m, &storageServiceProductListServer{stream})
 }
 
-type AdminService_ProductListServer interface {
+type StorageService_ProductListServer interface {
 	Send(*ProductListResponse) error
 	grpc.ServerStream
 }
 
-type adminServiceProductListServer struct {
+type storageServiceProductListServer struct {
 	grpc.ServerStream
 }
 
-func (x *adminServiceProductListServer) Send(m *ProductListResponse) error {
+func (x *storageServiceProductListServer) Send(m *ProductListResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _AdminService_ProductGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_ProductGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProductGetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminServiceServer).ProductGet(ctx, in)
+		return srv.(StorageServiceServer).ProductGet(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.storage.v1.AdminService/ProductGet",
+		FullMethod: "/api.storage.v1.StorageService/ProductGet",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).ProductGet(ctx, req.(*ProductGetRequest))
+		return srv.(StorageServiceServer).ProductGet(ctx, req.(*ProductGetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AdminService_ProductCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_ProductCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProductCreateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminServiceServer).ProductCreate(ctx, in)
+		return srv.(StorageServiceServer).ProductCreate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.storage.v1.AdminService/ProductCreate",
+		FullMethod: "/api.storage.v1.StorageService/ProductCreate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).ProductCreate(ctx, req.(*ProductCreateRequest))
+		return srv.(StorageServiceServer).ProductCreate(ctx, req.(*ProductCreateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AdminService_ProductUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_ProductUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProductUpdateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminServiceServer).ProductUpdate(ctx, in)
+		return srv.(StorageServiceServer).ProductUpdate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.storage.v1.AdminService/ProductUpdate",
+		FullMethod: "/api.storage.v1.StorageService/ProductUpdate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).ProductUpdate(ctx, req.(*ProductUpdateRequest))
+		return srv.(StorageServiceServer).ProductUpdate(ctx, req.(*ProductUpdateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AdminService_ProductDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_ProductDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProductDeleteRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminServiceServer).ProductDelete(ctx, in)
+		return srv.(StorageServiceServer).ProductDelete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.storage.v1.AdminService/ProductDelete",
+		FullMethod: "/api.storage.v1.StorageService/ProductDelete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).ProductDelete(ctx, req.(*ProductDeleteRequest))
+		return srv.(StorageServiceServer).ProductDelete(ctx, req.(*ProductDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
+// StorageService_ServiceDesc is the grpc.ServiceDesc for StorageService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var AdminService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.storage.v1.AdminService",
-	HandlerType: (*AdminServiceServer)(nil),
+var StorageService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.storage.v1.StorageService",
+	HandlerType: (*StorageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "ProductGet",
-			Handler:    _AdminService_ProductGet_Handler,
+			Handler:    _StorageService_ProductGet_Handler,
 		},
 		{
 			MethodName: "ProductCreate",
-			Handler:    _AdminService_ProductCreate_Handler,
+			Handler:    _StorageService_ProductCreate_Handler,
 		},
 		{
 			MethodName: "ProductUpdate",
-			Handler:    _AdminService_ProductUpdate_Handler,
+			Handler:    _StorageService_ProductUpdate_Handler,
 		},
 		{
 			MethodName: "ProductDelete",
-			Handler:    _AdminService_ProductDelete_Handler,
+			Handler:    _StorageService_ProductDelete_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "ProductList",
-			Handler:       _AdminService_ProductList_Handler,
+			Handler:       _StorageService_ProductList_Handler,
 			ServerStreams: true,
 		},
 	},
