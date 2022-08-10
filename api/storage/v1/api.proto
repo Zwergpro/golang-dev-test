@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package api.storage.v1;
+option go_package = "homework-1/pkg/storage;storage";
+
+service AdminService {
+  rpc ProductList(ProductListRequest) returns (stream ProductListResponse) {}
+  rpc ProductGet(ProductGetRequest) returns (ProductGetResponse) {}
+  rpc ProductCreate(ProductCreateRequest) returns (ProductCreateResponse) {}
+  rpc ProductUpdate(ProductUpdateRequest) returns (ProductUpdateResponse) {}
+  rpc ProductDelete(ProductDeleteRequest) returns (ProductDeleteResponse) {}
+}
+
+
+
+// ---------------------------------------------------------------------------------------------------------------------
+// ProductList endpoint messages
+// ---------------------------------------------------------------------------------------------------------------------
+
+message ProductListRequest {
+  optional uint64 page = 1;
+  optional uint64 size = 2;
+}
+
+message ProductListResponse {
+  repeated Product products = 1;
+
+  message Product {
+    uint64 id = 1;
+    string name = 2;
+    uint64 price = 3;
+    uint64 quantity = 4;
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// ProductGet endpoint messages
+// ---------------------------------------------------------------------------------------------------------------------
+
+message ProductGetRequest {
+  uint64 id = 1;
+}
+
+message ProductGetResponse {
+  uint64 id = 1;
+  string name = 2;
+  uint64 price = 3;
+  uint64 quantity = 4;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// ProductCreate endpoint messages
+// ---------------------------------------------------------------------------------------------------------------------
+
+message ProductCreateRequest {
+  string name = 1;
+  uint64 price = 2;
+  uint64 quantity = 3;
+}
+
+message ProductCreateResponse {
+  uint64 id = 1;
+  string name = 2;
+  uint64 price = 3;
+  uint64 quantity = 4;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// ProductUpdate endpoint messages
+// ---------------------------------------------------------------------------------------------------------------------
+
+message ProductUpdateRequest {
+  uint64 id = 1;
+  string name = 2;
+  uint64 price = 3;
+  uint64 quantity = 4;
+}
+
+message ProductUpdateResponse {
+  uint64 id = 1;
+  string name = 2;
+  uint64 price = 3;
+  uint64 quantity = 4;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// ProductDelete endpoint messages
+// ---------------------------------------------------------------------------------------------------------------------
+
+message ProductDeleteRequest {
+  uint64 id = 1;
+}
+
+message ProductDeleteResponse {}
