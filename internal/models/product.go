@@ -1,73 +1,68 @@
-package storage
+package models
 
-import (
-	"fmt"
-	"sync/atomic"
-)
-
-var lastId uint64 = 0
+import "fmt"
 
 type Product struct {
-	id       uint64
-	name     string
-	price    uint64
-	quantity uint64
+	Id       uint64 `db:"id"`
+	Name     string `db:"name"`
+	Price    uint64 `db:"price"`
+	Quantity uint64 `db:"quantity"`
 }
 
 func (p Product) GetId() uint64 {
-	return p.id
+	return p.Id
 }
 
 func (p Product) GetName() string {
-	return p.name
+	return p.Name
 }
 
 func (p *Product) SetName(name string) error {
 	if len(name) == 0 {
 		return fmt.Errorf("name length must be greater than 0")
 	}
-	p.name = name
+	p.Name = name
 	return nil
 }
 
 func (p Product) GetPrice() uint64 {
-	return p.price
+	return p.Price
 }
 
 func (p *Product) SetPrice(price uint64) error {
 	if price == 0 {
 		return fmt.Errorf("price must be greater than 0")
 	}
-	p.price = price
+	p.Price = price
 	return nil
 }
 
 func (p Product) GetQuantity() uint64 {
-	return p.quantity
+	return p.Quantity
 }
 
 func (p *Product) SetQuantity(quantity uint64) error {
 	if quantity == 0 {
 		return fmt.Errorf("quantity must be greater than 0")
 	}
-	p.quantity = quantity
+	p.Quantity = quantity
 	return nil
 }
 
 func (p Product) String() string {
-	return fmt.Sprintf("[%d] name:%s price:%d quantity:%d", p.id, p.name, p.price, p.quantity)
+	return fmt.Sprintf("[%d] name:%s price:%d quantity:%d", p.Id, p.Name, p.Price, p.Quantity)
 }
 
 func (p *Product) Copy() *Product {
 	return &Product{
-		id:       p.id,
-		name:     p.name,
-		price:    p.price,
-		quantity: p.quantity,
+		Id:       p.Id,
+		Name:     p.Name,
+		Price:    p.Price,
+		Quantity: p.Quantity,
 	}
 }
 
-func NewProduct(name string, price uint64, quantity uint64) (*Product, error) {
+func BuildProduct(name string, price uint64, quantity uint64) (*Product, error) {
 	p := Product{}
 	if err := p.SetName(name); err != nil {
 		return nil, err
@@ -79,6 +74,5 @@ func NewProduct(name string, price uint64, quantity uint64) (*Product, error) {
 		return nil, err
 	}
 
-	p.id = atomic.AddUint64(&lastId, 1)
 	return &p, nil
 }

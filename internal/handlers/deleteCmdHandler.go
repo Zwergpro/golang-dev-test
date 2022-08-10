@@ -1,14 +1,15 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"homework-1/internal/storage"
+	"homework-1/internal/repository"
 	"strconv"
 	"strings"
 )
 
-func deleteCmdHandler(cmdArgs string) string {
+func deleteCmdHandler(repository repository.Product, cmdArgs string) string {
 	args := strings.Split(cmdArgs, " ")
 	if len(args) != 1 {
 		return errors.Wrapf(BadArguments, "Invalid arguments count: %d. Require 1", len(args)).Error()
@@ -19,7 +20,10 @@ func deleteCmdHandler(cmdArgs string) string {
 		return errors.Wrapf(BadArguments, "Can't parse id: %s", args[0]).Error()
 	}
 
-	if err = storage.Delete(id); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	if err = repository.DeleteProduct(ctx, id); err != nil {
 		return err.Error()
 	}
 
