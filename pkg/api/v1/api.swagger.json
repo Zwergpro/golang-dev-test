@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "APIService"
+      "name": "ApiService"
     }
   ],
   "consumes": [
@@ -18,7 +18,7 @@
   "paths": {
     "/api/v1/users": {
       "get": {
-        "operationId": "APIService_ProductList",
+        "operationId": "ApiService_ProductList",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -50,11 +50,11 @@
           }
         ],
         "tags": [
-          "APIService"
+          "ApiService"
         ]
       },
       "post": {
-        "operationId": "APIService_ProductCreate",
+        "operationId": "ApiService_ProductCreate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -80,13 +80,13 @@
           }
         ],
         "tags": [
-          "APIService"
+          "ApiService"
         ]
       }
     },
     "/api/v1/users/{id}": {
       "get": {
-        "operationId": "APIService_ProductGet",
+        "operationId": "ApiService_ProductGet",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -111,11 +111,11 @@
           }
         ],
         "tags": [
-          "APIService"
+          "ApiService"
         ]
       },
       "delete": {
-        "operationId": "APIService_ProductDelete",
+        "operationId": "ApiService_ProductDelete",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -140,11 +140,11 @@
           }
         ],
         "tags": [
-          "APIService"
+          "ApiService"
         ]
       },
       "put": {
-        "operationId": "APIService_ProductUpdate",
+        "operationId": "ApiService_ProductUpdate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -190,7 +190,7 @@
           }
         ],
         "tags": [
-          "APIService"
+          "ApiService"
         ]
       }
     }

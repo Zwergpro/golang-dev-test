@@ -6,7 +6,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
 	"homework-1/config"
-	"homework-1/internal/api"
+	"homework-1/internal/api/storage"
 	postgresRepository "homework-1/internal/repository/postgres"
 	pbStorage "homework-1/pkg/api/storage/v1"
 	"log"
@@ -45,11 +45,11 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	deps := api.Deps{
+	deps := storage.Deps{
 		ProductRepository: postgresRepository.NewRepository(pool),
 	}
 
-	pbStorage.RegisterStorageServiceServer(grpcServer, api.New(deps))
+	pbStorage.RegisterStorageServiceServer(grpcServer, storage.New(deps))
 
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {

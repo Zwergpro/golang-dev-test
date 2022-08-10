@@ -736,7 +736,7 @@ var file_v1_api_proto_rawDesc = []byte{
 	0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69,
 	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x22, 0x17, 0x0a, 0x15, 0x50,
 	0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x32, 0x8b, 0x04, 0x0a, 0x0a, 0x41, 0x50, 0x49, 0x53, 0x65, 0x72, 0x76,
+	0x6f, 0x6e, 0x73, 0x65, 0x32, 0x8b, 0x04, 0x0a, 0x0a, 0x41, 0x70, 0x69, 0x53, 0x65, 0x72, 0x76,
 	0x69, 0x63, 0x65, 0x12, 0x5d, 0x0a, 0x0b, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x4c, 0x69,
 	0x73, 0x74, 0x12, 0x1a, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x64,
 	0x75, 0x63, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b,
@@ -802,16 +802,16 @@ var file_v1_api_proto_goTypes = []interface{}{
 }
 var file_v1_api_proto_depIdxs = []int32{
 	10, // 0: api.v1.ProductListResponse.products:type_name -> api.v1.ProductListResponse.Product
-	0,  // 1: api.v1.APIService.ProductList:input_type -> api.v1.ProductListRequest
-	2,  // 2: api.v1.APIService.ProductGet:input_type -> api.v1.ProductGetRequest
-	4,  // 3: api.v1.APIService.ProductCreate:input_type -> api.v1.ProductCreateRequest
-	6,  // 4: api.v1.APIService.ProductUpdate:input_type -> api.v1.ProductUpdateRequest
-	8,  // 5: api.v1.APIService.ProductDelete:input_type -> api.v1.ProductDeleteRequest
-	1,  // 6: api.v1.APIService.ProductList:output_type -> api.v1.ProductListResponse
-	3,  // 7: api.v1.APIService.ProductGet:output_type -> api.v1.ProductGetResponse
-	5,  // 8: api.v1.APIService.ProductCreate:output_type -> api.v1.ProductCreateResponse
-	7,  // 9: api.v1.APIService.ProductUpdate:output_type -> api.v1.ProductUpdateResponse
-	9,  // 10: api.v1.APIService.ProductDelete:output_type -> api.v1.ProductDeleteResponse
+	0,  // 1: api.v1.ApiService.ProductList:input_type -> api.v1.ProductListRequest
+	2,  // 2: api.v1.ApiService.ProductGet:input_type -> api.v1.ProductGetRequest
+	4,  // 3: api.v1.ApiService.ProductCreate:input_type -> api.v1.ProductCreateRequest
+	6,  // 4: api.v1.ApiService.ProductUpdate:input_type -> api.v1.ProductUpdateRequest
+	8,  // 5: api.v1.ApiService.ProductDelete:input_type -> api.v1.ProductDeleteRequest
+	1,  // 6: api.v1.ApiService.ProductList:output_type -> api.v1.ProductListResponse
+	3,  // 7: api.v1.ApiService.ProductGet:output_type -> api.v1.ProductGetResponse
+	5,  // 8: api.v1.ApiService.ProductCreate:output_type -> api.v1.ProductCreateResponse
+	7,  // 9: api.v1.ApiService.ProductUpdate:output_type -> api.v1.ProductUpdateResponse
+	9,  // 10: api.v1.ApiService.ProductDelete:output_type -> api.v1.ProductDeleteResponse
 	6,  // [6:11] is the sub-list for method output_type
 	1,  // [1:6] is the sub-list for method input_type
 	1,  // [1:1] is the sub-list for extension type_name

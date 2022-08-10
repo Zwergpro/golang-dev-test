@@ -5,7 +5,7 @@ option go_package = "homework-1/pkg/api;api";
 
 import "google/api/annotations.proto";
 
-service APIService {
+service ApiService {
   rpc ProductList(ProductListRequest) returns (ProductListResponse) {
     option (google.api.http) = {
       get: "/api/v1/users"

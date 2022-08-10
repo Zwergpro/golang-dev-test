@@ -18,10 +18,10 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// APIServiceClient is the client API for APIService service.
+// ApiServiceClient is the client API for ApiService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type APIServiceClient interface {
+type ApiServiceClient interface {
 	ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (*ProductListResponse, error)
 	ProductGet(ctx context.Context, in *ProductGetRequest, opts ...grpc.CallOption) (*ProductGetResponse, error)
 	ProductCreate(ctx context.Context, in *ProductCreateRequest, opts ...grpc.CallOption) (*ProductCreateResponse, error)
@@ -29,219 +29,219 @@ type APIServiceClient interface {
 	ProductDelete(ctx context.Context, in *ProductDeleteRequest, opts ...grpc.CallOption) (*ProductDeleteResponse, error)
 }
 
-type aPIServiceClient struct {
+type apiServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAPIServiceClient(cc grpc.ClientConnInterface) APIServiceClient {
-	return &aPIServiceClient{cc}
+func NewApiServiceClient(cc grpc.ClientConnInterface) ApiServiceClient {
+	return &apiServiceClient{cc}
 }
 
-func (c *aPIServiceClient) ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (*ProductListResponse, error) {
+func (c *apiServiceClient) ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (*ProductListResponse, error) {
 	out := new(ProductListResponse)
-	err := c.cc.Invoke(ctx, "/api.v1.APIService/ProductList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.v1.ApiService/ProductList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPIServiceClient) ProductGet(ctx context.Context, in *ProductGetRequest, opts ...grpc.CallOption) (*ProductGetResponse, error) {
+func (c *apiServiceClient) ProductGet(ctx context.Context, in *ProductGetRequest, opts ...grpc.CallOption) (*ProductGetResponse, error) {
 	out := new(ProductGetResponse)
-	err := c.cc.Invoke(ctx, "/api.v1.APIService/ProductGet", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.v1.ApiService/ProductGet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPIServiceClient) ProductCreate(ctx context.Context, in *ProductCreateRequest, opts ...grpc.CallOption) (*ProductCreateResponse, error) {
+func (c *apiServiceClient) ProductCreate(ctx context.Context, in *ProductCreateRequest, opts ...grpc.CallOption) (*ProductCreateResponse, error) {
 	out := new(ProductCreateResponse)
-	err := c.cc.Invoke(ctx, "/api.v1.APIService/ProductCreate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.v1.ApiService/ProductCreate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPIServiceClient) ProductUpdate(ctx context.Context, in *ProductUpdateRequest, opts ...grpc.CallOption) (*ProductUpdateResponse, error) {
+func (c *apiServiceClient) ProductUpdate(ctx context.Context, in *ProductUpdateRequest, opts ...grpc.CallOption) (*ProductUpdateResponse, error) {
 	out := new(ProductUpdateResponse)
-	err := c.cc.Invoke(ctx, "/api.v1.APIService/ProductUpdate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.v1.ApiService/ProductUpdate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPIServiceClient) ProductDelete(ctx context.Context, in *ProductDeleteRequest, opts ...grpc.CallOption) (*ProductDeleteResponse, error) {
+func (c *apiServiceClient) ProductDelete(ctx context.Context, in *ProductDeleteRequest, opts ...grpc.CallOption) (*ProductDeleteResponse, error) {
 	out := new(ProductDeleteResponse)
-	err := c.cc.Invoke(ctx, "/api.v1.APIService/ProductDelete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.v1.ApiService/ProductDelete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// APIServiceServer is the server API for APIService service.
-// All implementations must embed UnimplementedAPIServiceServer
+// ApiServiceServer is the server API for ApiService service.
+// All implementations must embed UnimplementedApiServiceServer
 // for forward compatibility
-type APIServiceServer interface {
+type ApiServiceServer interface {
 	ProductList(context.Context, *ProductListRequest) (*ProductListResponse, error)
 	ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error)
 	ProductCreate(context.Context, *ProductCreateRequest) (*ProductCreateResponse, error)
 	ProductUpdate(context.Context, *ProductUpdateRequest) (*ProductUpdateResponse, error)
 	ProductDelete(context.Context, *ProductDeleteRequest) (*ProductDeleteResponse, error)
-	mustEmbedUnimplementedAPIServiceServer()
+	mustEmbedUnimplementedApiServiceServer()
 }
 
-// UnimplementedAPIServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedAPIServiceServer struct {
+// UnimplementedApiServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedApiServiceServer struct {
 }
 
-func (UnimplementedAPIServiceServer) ProductList(context.Context, *ProductListRequest) (*ProductListResponse, error) {
+func (UnimplementedApiServiceServer) ProductList(context.Context, *ProductListRequest) (*ProductListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductList not implemented")
 }
-func (UnimplementedAPIServiceServer) ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error) {
+func (UnimplementedApiServiceServer) ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductGet not implemented")
 }
-func (UnimplementedAPIServiceServer) ProductCreate(context.Context, *ProductCreateRequest) (*ProductCreateResponse, error) {
+func (UnimplementedApiServiceServer) ProductCreate(context.Context, *ProductCreateRequest) (*ProductCreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductCreate not implemented")
 }
-func (UnimplementedAPIServiceServer) ProductUpdate(context.Context, *ProductUpdateRequest) (*ProductUpdateResponse, error) {
+func (UnimplementedApiServiceServer) ProductUpdate(context.Context, *ProductUpdateRequest) (*ProductUpdateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductUpdate not implemented")
 }
-func (UnimplementedAPIServiceServer) ProductDelete(context.Context, *ProductDeleteRequest) (*ProductDeleteResponse, error) {
+func (UnimplementedApiServiceServer) ProductDelete(context.Context, *ProductDeleteRequest) (*ProductDeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductDelete not implemented")
 }
-func (UnimplementedAPIServiceServer) mustEmbedUnimplementedAPIServiceServer() {}
+func (UnimplementedApiServiceServer) mustEmbedUnimplementedApiServiceServer() {}
 
-// UnsafeAPIServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to APIServiceServer will
+// UnsafeApiServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ApiServiceServer will
 // result in compilation errors.
-type UnsafeAPIServiceServer interface {
-	mustEmbedUnimplementedAPIServiceServer()
+type UnsafeApiServiceServer interface {
+	mustEmbedUnimplementedApiServiceServer()
 }
 
-func RegisterAPIServiceServer(s grpc.ServiceRegistrar, srv APIServiceServer) {
-	s.RegisterService(&APIService_ServiceDesc, srv)
+func RegisterApiServiceServer(s grpc.ServiceRegistrar, srv ApiServiceServer) {
+	s.RegisterService(&ApiService_ServiceDesc, srv)
 }
 
-func _APIService_ProductList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ApiService_ProductList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProductListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIServiceServer).ProductList(ctx, in)
+		return srv.(ApiServiceServer).ProductList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.v1.APIService/ProductList",
+		FullMethod: "/api.v1.ApiService/ProductList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServiceServer).ProductList(ctx, req.(*ProductListRequest))
+		return srv.(ApiServiceServer).ProductList(ctx, req.(*ProductListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APIService_ProductGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ApiService_ProductGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProductGetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIServiceServer).ProductGet(ctx, in)
+		return srv.(ApiServiceServer).ProductGet(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.v1.APIService/ProductGet",
+		FullMethod: "/api.v1.ApiService/ProductGet",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServiceServer).ProductGet(ctx, req.(*ProductGetRequest))
+		return srv.(ApiServiceServer).ProductGet(ctx, req.(*ProductGetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APIService_ProductCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ApiService_ProductCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProductCreateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIServiceServer).ProductCreate(ctx, in)
+		return srv.(ApiServiceServer).ProductCreate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.v1.APIService/ProductCreate",
+		FullMethod: "/api.v1.ApiService/ProductCreate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServiceServer).ProductCreate(ctx, req.(*ProductCreateRequest))
+		return srv.(ApiServiceServer).ProductCreate(ctx, req.(*ProductCreateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APIService_ProductUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ApiService_ProductUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProductUpdateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIServiceServer).ProductUpdate(ctx, in)
+		return srv.(ApiServiceServer).ProductUpdate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.v1.APIService/ProductUpdate",
+		FullMethod: "/api.v1.ApiService/ProductUpdate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServiceServer).ProductUpdate(ctx, req.(*ProductUpdateRequest))
+		return srv.(ApiServiceServer).ProductUpdate(ctx, req.(*ProductUpdateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APIService_ProductDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ApiService_ProductDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProductDeleteRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIServiceServer).ProductDelete(ctx, in)
+		return srv.(ApiServiceServer).ProductDelete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.v1.APIService/ProductDelete",
+		FullMethod: "/api.v1.ApiService/ProductDelete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServiceServer).ProductDelete(ctx, req.(*ProductDeleteRequest))
+		return srv.(ApiServiceServer).ProductDelete(ctx, req.(*ProductDeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// APIService_ServiceDesc is the grpc.ServiceDesc for APIService service.
+// ApiService_ServiceDesc is the grpc.ServiceDesc for ApiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var APIService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.v1.APIService",
-	HandlerType: (*APIServiceServer)(nil),
+var ApiService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.v1.ApiService",
+	HandlerType: (*ApiServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "ProductList",
-			Handler:    _APIService_ProductList_Handler,
+			Handler:    _ApiService_ProductList_Handler,
 		},
 		{
 			MethodName: "ProductGet",
-			Handler:    _APIService_ProductGet_Handler,
+			Handler:    _ApiService_ProductGet_Handler,
 		},
 		{
 			MethodName: "ProductCreate",
-			Handler:    _APIService_ProductCreate_Handler,
+			Handler:    _ApiService_ProductCreate_Handler,
 		},
 		{
 			MethodName: "ProductUpdate",
-			Handler:    _APIService_ProductUpdate_Handler,
+			Handler:    _ApiService_ProductUpdate_Handler,
 		},
 		{
 			MethodName: "ProductDelete",
-			Handler:    _APIService_ProductDelete_Handler,
+			Handler:    _ApiService_ProductDelete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

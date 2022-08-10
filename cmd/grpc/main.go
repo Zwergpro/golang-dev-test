@@ -6,8 +6,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
 	"homework-1/config"
-	"homework-1/internal/api"
-	postgresRepository "homework-1/internal/repository/postgres"
+	"homework-1/internal/api/proxyApi"
 	pb "homework-1/pkg/api/v1"
 	"log"
 	"net"
@@ -43,12 +42,7 @@ func main() {
 	poolConfig.MaxConns = config.DBMaxConns
 
 	grpcServer := grpc.NewServer()
-
-	deps := api.Deps{
-		ProductRepository: postgresRepository.NewRepository(pool),
-	}
-
-	pb.RegisterAdminServiceServer(grpcServer, api.New(deps))
+	pb.RegisterApiServiceServer(grpcServer, proxyApi.New())
 
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
