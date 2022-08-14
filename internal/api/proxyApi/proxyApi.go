@@ -4,10 +4,12 @@ import (
 	"context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"homework-1/internal/models/products"
 	pbStorage "homework-1/pkg/api/storage/v1"
 	pbApi "homework-1/pkg/api/v1"
 	"io"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -37,8 +39,8 @@ func (i *implementation) ProductList(_ context.Context, in *pbApi.ProductListReq
 	pageNum := in.GetPage()
 	pageSize := in.GetSize()
 
-	productListRequest := pbStorage.ProductListRequest{Page: &pageNum, Size: &pageSize}
-	productStream, err := i.deps.StorageClient.ProductList(ctx, &productListRequest)
+	request := pbStorage.ProductListRequest{Page: &pageNum, Size: &pageSize}
+	productStream, err := i.deps.StorageClient.ProductList(ctx, &request)
 	if err != nil {
 		log.Printf("[ERROR] ProductList: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
@@ -93,13 +95,21 @@ func (i *implementation) ProductCreate(_ context.Context, in *pbApi.ProductCreat
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	createProductRequest := pbStorage.ProductCreateRequest{
+	if errs := products.ValidateProductFields(in.GetName(), in.GetPrice(), in.GetQuantity()); len(errs) > 0 {
+		errStrings := make([]string, 0, len(errs))
+		for _, err := range errs {
+			errStrings = append(errStrings, err.Error())
+		}
+		return nil, status.Error(codes.InvalidArgument, strings.Join(errStrings, "; "))
+	}
+
+	request := pbStorage.ProductCreateRequest{
 		Name:     in.GetName(),
 		Price:    in.GetPrice(),
 		Quantity: in.GetQuantity(),
 	}
 
-	product, err := i.deps.StorageClient.ProductCreate(ctx, &createProductRequest)
+	product, err := i.deps.StorageClient.ProductCreate(ctx, &request)
 	if err != nil {
 		log.Printf("[ERROR] ProductCreate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
@@ -119,14 +129,22 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pbApi.ProductUpdat
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	updateProductRequest := pbStorage.ProductUpdateRequest{
+	if errs := products.ValidateProductFields(in.GetName(), in.GetPrice(), in.GetQuantity()); len(errs) > 0 {
+		errStrings := make([]string, 0, len(errs))
+		for _, err := range errs {
+			errStrings = append(errStrings, err.Error())
+		}
+		return nil, status.Error(codes.InvalidArgument, strings.Join(errStrings, "; "))
+	}
+
+	request := pbStorage.ProductUpdateRequest{
 		Id:       in.GetId(),
 		Name:     in.GetName(),
 		Price:    in.GetPrice(),
 		Quantity: in.GetQuantity(),
 	}
 
-	product, err := i.deps.StorageClient.ProductUpdate(ctx, &updateProductRequest)
+	product, err := i.deps.StorageClient.ProductUpdate(ctx, &request)
 	if err != nil {
 		log.Printf("[ERROR] ProductUpdate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")

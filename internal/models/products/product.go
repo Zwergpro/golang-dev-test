@@ -1,4 +1,4 @@
-package models
+package products
 
 import "fmt"
 
@@ -9,47 +9,47 @@ type Product struct {
 	Quantity uint64 `db:"quantity"`
 }
 
-func (p Product) GetId() uint64 {
+func (p *Product) GetId() uint64 {
 	return p.Id
 }
 
-func (p Product) GetName() string {
+func (p *Product) GetName() string {
 	return p.Name
 }
 
 func (p *Product) SetName(name string) error {
-	if len(name) == 0 {
-		return fmt.Errorf("name length must be greater than 0")
+	if err := ValidateName(name); err != nil {
+		return err
 	}
 	p.Name = name
 	return nil
 }
 
-func (p Product) GetPrice() uint64 {
+func (p *Product) GetPrice() uint64 {
 	return p.Price
 }
 
 func (p *Product) SetPrice(price uint64) error {
-	if price == 0 {
-		return fmt.Errorf("price must be greater than 0")
+	if err := ValidatePrice(price); err != nil {
+		return err
 	}
 	p.Price = price
 	return nil
 }
 
-func (p Product) GetQuantity() uint64 {
+func (p *Product) GetQuantity() uint64 {
 	return p.Quantity
 }
 
 func (p *Product) SetQuantity(quantity uint64) error {
-	if quantity == 0 {
-		return fmt.Errorf("quantity must be greater than 0")
+	if err := ValidateQuantity(quantity); err != nil {
+		return err
 	}
 	p.Quantity = quantity
 	return nil
 }
 
-func (p Product) String() string {
+func (p *Product) String() string {
 	return fmt.Sprintf("[%d] name:%s price:%d quantity:%d", p.Id, p.Name, p.Price, p.Quantity)
 }
 

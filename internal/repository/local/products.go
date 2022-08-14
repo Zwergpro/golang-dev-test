@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"homework-1/internal/math"
-	"homework-1/internal/models"
+	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
 	"sort"
 	"strconv"
@@ -14,7 +14,7 @@ var ErrProductIdAlreadySet = errors.New("Product id already set")
 
 var defaultProductsPageSize = uint64(20)
 
-func (r *Repository) GetProductById(ctx context.Context, id uint64) (*models.Product, error) {
+func (r *Repository) GetProductById(ctx context.Context, id uint64) (*products.Product, error) {
 	if err := r.warehouse.RLockWithContext(ctx); err != nil {
 		return nil, err
 	}
@@ -26,9 +26,9 @@ func (r *Repository) GetProductById(ctx context.Context, id uint64) (*models.Pro
 	return nil, errors.Wrap(repository.ProductNotExists, strconv.FormatUint(id, 10))
 }
 
-func (r *Repository) CreateProduct(ctx context.Context, product models.Product) (*models.Product, error) {
+func (r *Repository) CreateProduct(ctx context.Context, product products.Product) (*products.Product, error) {
 	if product.Id > 0 {
-		return nil, errors.Wrap(ErrProductIdAlreadySet, "Can't create new product")
+		return nil, errors.Wrap(ErrProductIdAlreadySet, "Can't create new products")
 	}
 
 	product.Id = r.warehouse.GetNextId()
@@ -58,7 +58,7 @@ func (r *Repository) DeleteProduct(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (r *Repository) UpdateProduct(ctx context.Context, product models.Product) (*models.Product, error) {
+func (r *Repository) UpdateProduct(ctx context.Context, product products.Product) (*products.Product, error) {
 	if err := r.warehouse.LockWithContext(ctx); err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (r *Repository) UpdateProduct(ctx context.Context, product models.Product) 
 	return product.Copy(), nil
 }
 
-func (r *Repository) GetAllProducts(ctx context.Context, page uint64, size uint64) ([]*models.Product, error) {
+func (r *Repository) GetAllProducts(ctx context.Context, page uint64, size uint64) ([]*products.Product, error) {
 	limit, offset := r.getPaginationLimitAndOffset(page, size)
 
 	if err := r.warehouse.RLockWithContext(ctx); err != nil {
@@ -81,17 +81,17 @@ func (r *Repository) GetAllProducts(ctx context.Context, page uint64, size uint6
 
 	warehouseLen := uint64(len(r.warehouse.storage))
 
-	products := make([]*models.Product, 0, warehouseLen)
+	allProducts := make([]*products.Product, 0, warehouseLen)
 	for _, v := range r.warehouse.storage {
-		products = append(products, v.Copy())
+		allProducts = append(allProducts, v.Copy())
 	}
-	sort.SliceStable(products, func(i, j int) bool {
-		return products[i].Id < products[j].Id
+	sort.SliceStable(allProducts, func(i, j int) bool {
+		return allProducts[i].Id < allProducts[j].Id
 	})
 
 	start := math.MinUint64(warehouseLen, offset)
 	end := math.MinUint64(warehouseLen, offset+limit)
-	return products[start:end], nil
+	return allProducts[start:end], nil
 }
 
 func (r *Repository) getPaginationLimitAndOffset(page uint64, size uint64) (uint64, uint64) {

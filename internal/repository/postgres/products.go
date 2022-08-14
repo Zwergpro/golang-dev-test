@@ -6,7 +6,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/pkg/errors"
-	"homework-1/internal/models"
+	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
 	"strconv"
 )
@@ -15,7 +15,7 @@ var psql = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
 var defaultProductsPageSize = uint64(20)
 
-func (r *Repository) GetProductById(ctx context.Context, id uint64) (*models.Product, error) {
+func (r *Repository) GetProductById(ctx context.Context, id uint64) (*products.Product, error) {
 	query, args, err := psql.Select("id, name, price, quantity").
 		From("products").
 		Where(squirrel.Eq{"id": id}).
@@ -24,7 +24,7 @@ func (r *Repository) GetProductById(ctx context.Context, id uint64) (*models.Pro
 		return nil, fmt.Errorf("Repository.GetProductById: to sql: %w", err)
 	}
 
-	var product models.Product
+	var product products.Product
 	if err = pgxscan.Get(ctx, r.pool, &product, query, args...); err != nil {
 		if pgxscan.NotFound(err) {
 			return nil, errors.Wrap(repository.ProductNotExists, strconv.FormatUint(id, 10))
@@ -35,7 +35,7 @@ func (r *Repository) GetProductById(ctx context.Context, id uint64) (*models.Pro
 	return &product, nil
 }
 
-func (r *Repository) CreateProduct(ctx context.Context, product models.Product) (*models.Product, error) {
+func (r *Repository) CreateProduct(ctx context.Context, product products.Product) (*products.Product, error) {
 	query, args, err := psql.Insert("products").
 		Columns("name, price, quantity").
 		Values(product.Name, product.Price, product.Quantity).
@@ -65,7 +65,7 @@ func (r *Repository) DeleteProduct(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (r *Repository) UpdateProduct(ctx context.Context, product models.Product) (*models.Product, error) {
+func (r *Repository) UpdateProduct(ctx context.Context, product products.Product) (*products.Product, error) {
 	query, args, err := psql.Update("products").
 		Set("name", product.Name).
 		Set("price", product.Price).
@@ -83,7 +83,7 @@ func (r *Repository) UpdateProduct(ctx context.Context, product models.Product) 
 	return &product, nil
 }
 
-func (r *Repository) GetAllProducts(ctx context.Context, page uint64, size uint64) ([]*models.Product, error) {
+func (r *Repository) GetAllProducts(ctx context.Context, page uint64, size uint64) ([]*products.Product, error) {
 	limit, offset := r.getPaginationLimitAndOffset(page, size)
 
 	query, args, err := psql.Select("id, name, price, quantity").
@@ -96,12 +96,12 @@ func (r *Repository) GetAllProducts(ctx context.Context, page uint64, size uint6
 		return nil, fmt.Errorf("Repository.GetAllProducts: to sql: %w", err)
 	}
 
-	var products []*models.Product
-	if err = pgxscan.Select(ctx, r.pool, &products, query, args...); err != nil {
+	var allProducts []*products.Product
+	if err = pgxscan.Select(ctx, r.pool, &allProducts, query, args...); err != nil {
 		return nil, fmt.Errorf("Repository.GetAllProducts: select: %w", err)
 	}
 
-	return products, nil
+	return allProducts, nil
 }
 
 func (r *Repository) getPaginationLimitAndOffset(page uint64, size uint64) (uint64, uint64) {

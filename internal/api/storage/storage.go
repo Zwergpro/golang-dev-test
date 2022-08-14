@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"homework-1/internal/models"
+	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/storage/v1"
 	"log"
@@ -35,13 +35,13 @@ func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageSe
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	products, err := i.deps.ProductRepository.GetAllProducts(ctx, in.GetPage(), in.GetSize())
+	allProducts, err := i.deps.ProductRepository.GetAllProducts(ctx, in.GetPage(), in.GetSize())
 	if err != nil {
 		log.Printf("[ERROR] ProductList: %v\n", err)
 		return status.Error(codes.Internal, "internal error")
 	}
 
-	for _, product := range products {
+	for _, product := range allProducts {
 		productResponse := pb.ProductListResponse{
 			Id:       product.GetId(),
 			Name:     product.GetName(),
@@ -84,7 +84,7 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	p, err := models.BuildProduct(in.GetName(), in.GetPrice(), in.GetQuantity())
+	p, err := products.BuildProduct(in.GetName(), in.GetPrice(), in.GetQuantity())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}

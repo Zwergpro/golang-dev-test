@@ -20,9 +20,9 @@ GRPC localhost:8081/api.v1.ApiService/ProductGet
 GRPC localhost:8081/api.v1.ApiService/ProductCreate
 
 {
-  "name": "NewProduct2",
-  "price": 3,
-  "quantity": 100
+  "name": "ывап",
+  "price": 0,
+  "quantity": 12
 }
 
 
