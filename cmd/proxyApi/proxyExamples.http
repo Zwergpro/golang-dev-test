@@ -2,10 +2,10 @@
 ### ProductList
 GRPC localhost:8081/api.v1.ApiService/ProductList
 
-{
-  "page": 1,
-  "size": 3
-}
+#{
+#  "page": 1,
+#  "size": 3
+#}
 
 
 ### ProductGet

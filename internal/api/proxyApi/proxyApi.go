@@ -52,7 +52,7 @@ func (i *implementation) ProductList(_ context.Context, in *pbApi.ProductListReq
 		}
 		if err != nil {
 			log.Printf("[ERROR] ProductList receive: %v\n", err)
-			continue
+			return nil, status.Error(codes.Internal, "internal error")
 		}
 		result = append(result, &pbApi.ProductListResponse_Product{
 			Id:       product.GetId(),
@@ -152,5 +152,5 @@ func (i *implementation) ProductDelete(_ context.Context, in *pbApi.ProductDelet
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	return nil, nil
+	return &pbApi.ProductDeleteResponse{}, nil
 }
