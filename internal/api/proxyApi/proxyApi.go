@@ -77,6 +77,9 @@ func (i *implementation) ProductGet(_ context.Context, in *pbApi.ProductGetReque
 
 	product, err := i.deps.StorageClient.ProductGet(ctx, &pbStorage.ProductGetRequest{Id: in.GetId()})
 	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, status.Error(codes.NotFound, "product not found")
+		}
 		log.Printf("[ERROR] ProductGet: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
@@ -146,6 +149,9 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pbApi.ProductUpdat
 
 	product, err := i.deps.StorageClient.ProductUpdate(ctx, &request)
 	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, status.Error(codes.NotFound, "product not found")
+		}
 		log.Printf("[ERROR] ProductUpdate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
@@ -166,6 +172,9 @@ func (i *implementation) ProductDelete(_ context.Context, in *pbApi.ProductDelet
 
 	_, err := i.deps.StorageClient.ProductDelete(ctx, &pbStorage.ProductDeleteRequest{Id: in.GetId()})
 	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, status.Error(codes.NotFound, "product not found")
+		}
 		log.Printf("[ERROR] ProductDelete: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
