@@ -51,7 +51,7 @@ func main() {
 
 	pbStorage.RegisterStorageServiceServer(grpcServer, storage.New(deps))
 
-	listener, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", config.StorageServiceAddress)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"homework-1/config"
 	gw "homework-1/pkg/api/v1"
 	"io/ioutil"
 	"log"
@@ -33,12 +34,12 @@ func run() error {
 
 	// init grpc gateway
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err = gw.RegisterApiServiceHandlerFromEndpoint(ctx, mux, ":8080", opts)
+	err = gw.RegisterApiServiceHandlerFromEndpoint(ctx, mux, config.ProxyApiServiceAddress, opts)
 	if err != nil {
 		return errors.Wrap(err, "Can't init grpc gateway")
 	}
 
-	return http.ListenAndServe(":8081", mux)
+	return http.ListenAndServe(config.HTTPGatewayServiceAddress, mux)
 }
 
 func swaggerHandler(w http.ResponseWriter, _ *http.Request, _ map[string]string) {

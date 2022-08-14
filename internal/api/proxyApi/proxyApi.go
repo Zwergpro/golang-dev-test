@@ -25,7 +25,7 @@ type implementation struct {
 }
 
 type Deps struct {
-	pbStorage pbStorage.StorageServiceClient
+	StorageClient pbStorage.StorageServiceClient
 }
 
 func (i *implementation) ProductList(_ context.Context, in *pbApi.ProductListRequest) (*pbApi.ProductListResponse, error) {
@@ -38,7 +38,7 @@ func (i *implementation) ProductList(_ context.Context, in *pbApi.ProductListReq
 	pageSize := in.GetSize()
 
 	productListRequest := pbStorage.ProductListRequest{Page: &pageNum, Size: &pageSize}
-	productStream, err := i.deps.pbStorage.ProductList(ctx, &productListRequest)
+	productStream, err := i.deps.StorageClient.ProductList(ctx, &productListRequest)
 	if err != nil {
 		log.Printf("[ERROR] ProductList: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
@@ -73,7 +73,7 @@ func (i *implementation) ProductGet(_ context.Context, in *pbApi.ProductGetReque
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	product, err := i.deps.pbStorage.ProductGet(ctx, &pbStorage.ProductGetRequest{Id: in.GetId()})
+	product, err := i.deps.StorageClient.ProductGet(ctx, &pbStorage.ProductGetRequest{Id: in.GetId()})
 	if err != nil {
 		log.Printf("[ERROR] ProductGet: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
@@ -99,7 +99,7 @@ func (i *implementation) ProductCreate(_ context.Context, in *pbApi.ProductCreat
 		Quantity: in.GetQuantity(),
 	}
 
-	product, err := i.deps.pbStorage.ProductCreate(ctx, &createProductRequest)
+	product, err := i.deps.StorageClient.ProductCreate(ctx, &createProductRequest)
 	if err != nil {
 		log.Printf("[ERROR] ProductCreate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
@@ -126,7 +126,7 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pbApi.ProductUpdat
 		Quantity: in.GetQuantity(),
 	}
 
-	product, err := i.deps.pbStorage.ProductUpdate(ctx, &updateProductRequest)
+	product, err := i.deps.StorageClient.ProductUpdate(ctx, &updateProductRequest)
 	if err != nil {
 		log.Printf("[ERROR] ProductUpdate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
@@ -146,7 +146,7 @@ func (i *implementation) ProductDelete(_ context.Context, in *pbApi.ProductDelet
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	_, err := i.deps.pbStorage.ProductDelete(ctx, &pbStorage.ProductDeleteRequest{Id: in.GetId()})
+	_, err := i.deps.StorageClient.ProductDelete(ctx, &pbStorage.ProductDeleteRequest{Id: in.GetId()})
 	if err != nil {
 		log.Printf("[ERROR] ProductDelete: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")

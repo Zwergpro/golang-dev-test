@@ -1,0 +1,40 @@
+
+### ProductList
+GRPC localhost:8080/api.storage.v1.StorageService/ProductList
+
+
+### ProductGet
+GRPC localhost:8080/api.storage.v1.StorageService/ProductGet
+
+{
+  "id": 1
+}
+
+
+### ProductCreate
+GRPC localhost:8080/api.storage.v1.StorageService/ProductCreate
+
+{
+  "name": "NewProduct2",
+  "price": 3,
+  "quantity": 100
+}
+
+
+### ProductUpdate
+GRPC localhost:8080/api.storage.v1.StorageService/ProductUpdate
+
+{
+  "id": "1",
+  "name": "newPillow",
+  "price": "300",
+  "quantity": "20"
+}
+
+
+### ProductDelete
+GRPC localhost:8080/api.storage.v1.StorageService/ProductDelete
+
+{
+  "id": 1
+}

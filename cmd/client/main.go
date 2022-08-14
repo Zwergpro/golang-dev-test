@@ -4,18 +4,19 @@ import (
 	"context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"homework-1/config"
 	pb "homework-1/pkg/api/v1"
 	"log"
 )
 
 // Test GRPC client
 func main() {
-	conn, err := grpc.Dial(":8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(config.ProxyApiServiceAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	client := pb.NewAdminServiceClient(conn)
+	client := pb.NewApiServiceClient(conn)
 
 	ctx := context.Background()
 	productId := uint64(1)
