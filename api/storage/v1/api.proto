@@ -1,39 +1,16 @@
 syntax = "proto3";
 
-package api.v1;
-option go_package = "homework-1/pkg/api;api";
+package api.storage.v1;
+option go_package = "homework-1/pkg/storage;storage";
 
-import "google/api/annotations.proto";
-
-service ApiService {
-  rpc ProductList(ProductListRequest) returns (ProductListResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/users"
-    };
-  }
-  rpc ProductGet(ProductGetRequest) returns (ProductGetResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/users/{id}"
-    };
-  }
-  rpc ProductCreate(ProductCreateRequest) returns (ProductCreateResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/users"
-      body: "*"
-    };
-  }
-  rpc ProductUpdate(ProductUpdateRequest) returns (ProductUpdateResponse) {
-    option (google.api.http) = {
-      put: "/api/v1/users/{id}"
-      body: "*"
-    };
-  }
-  rpc ProductDelete(ProductDeleteRequest) returns (ProductDeleteResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1/users/{id}"
-    };
-  }
+service StorageService {
+  rpc ProductList(ProductListRequest) returns (stream ProductListResponse) {}
+  rpc ProductGet(ProductGetRequest) returns (ProductGetResponse) {}
+  rpc ProductCreate(ProductCreateRequest) returns (ProductCreateResponse) {}
+  rpc ProductUpdate(ProductUpdateRequest) returns (ProductUpdateResponse) {}
+  rpc ProductDelete(ProductDeleteRequest) returns (ProductDeleteResponse) {}
 }
+
 
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -41,19 +18,15 @@ service ApiService {
 // ---------------------------------------------------------------------------------------------------------------------
 
 message ProductListRequest {
-    optional uint64 page = 1;
-    optional uint64 size = 2;
+  optional uint64 page = 1;
+  optional uint64 size = 2;
 }
 
 message ProductListResponse {
-  repeated Product products = 1;
-
-  message Product {
-    uint64 id = 1;
-    string name = 2;
-    uint64 price = 3;
-    uint64 quantity = 4;
-  }
+  uint64 id = 1;
+  string name = 2;
+  uint64 price = 3;
+  uint64 quantity = 4;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

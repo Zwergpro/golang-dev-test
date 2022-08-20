@@ -14,3 +14,9 @@ const (
 	DBMinConns        = 2
 	DBMaxConns        = 6
 )
+
+const (
+	StorageServiceAddress     = ":8080"
+	ProxyApiServiceAddress    = ":8081"
+	HTTPGatewayServiceAddress = ":8082"
+)

@@ -6,13 +6,14 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
 	"homework-1/config"
-	"homework-1/internal/api"
+	"homework-1/internal/api/storage"
 	postgresRepository "homework-1/internal/repository/postgres"
-	pb "homework-1/pkg/api/v1"
+	pbStorage "homework-1/pkg/api/storage/v1"
 	"log"
 	"net"
 )
 
+// сервис для работы с базами данных
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -44,13 +45,13 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	deps := api.Deps{
+	deps := storage.Deps{
 		ProductRepository: postgresRepository.NewRepository(pool),
 	}
 
-	pb.RegisterAdminServiceServer(grpcServer, api.New(deps))
+	pbStorage.RegisterStorageServiceServer(grpcServer, storage.New(deps))
 
-	listener, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", config.StorageServiceAddress)
 	if err != nil {
 		log.Fatal(err)
 	}

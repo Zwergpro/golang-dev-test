@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"homework-1/internal/models"
+	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
 	"strconv"
 	"strings"
@@ -36,7 +36,7 @@ func updateCmdHandler(repository repository.Product, cmdArgs string) string {
 	return fmt.Sprintf("Product updated: %s", product.String())
 }
 
-func getProductByStringId(ctx context.Context, repository repository.Product, id string) (*models.Product, error) {
+func getProductByStringId(ctx context.Context, repository repository.Product, id string) (*products.Product, error) {
 	productId, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		return nil, errors.Wrapf(BadArguments, "Can't parse id: %s", id)
@@ -50,7 +50,7 @@ func getProductByStringId(ctx context.Context, repository repository.Product, id
 	return product, nil
 }
 
-func updateProduct(product *models.Product, params []string) (*models.Product, error) {
+func updateProduct(product *products.Product, params []string) (*products.Product, error) {
 	if err := product.SetName(params[0]); err != nil {
 		return nil, err
 	}

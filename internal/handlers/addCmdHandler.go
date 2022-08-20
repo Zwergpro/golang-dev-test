@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"homework-1/internal/models"
+	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
 	"strconv"
 	"strings"
@@ -26,7 +26,7 @@ func addCmdHandler(repository repository.Product, cmdArgs string) string {
 		return errors.Wrapf(BadArguments, "Can't parse quantity: %s", params[2]).Error()
 	}
 
-	product, err := models.BuildProduct(params[0], price, quantity)
+	product, err := products.BuildProduct(params[0], price, quantity)
 	if err != nil {
 		return err.Error()
 	}

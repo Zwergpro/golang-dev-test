@@ -1,14 +1,14 @@
 
 ### List
-GET localhost:8081/api/v1/users
+GET localhost:8082/api/v1/users
 
 
 ### Get
-GET localhost:8081/api/v1/users/1
+GET localhost:8082/api/v1/users/1
 
 
 ### Create
-POST localhost:8081/api/v1/users
+POST localhost:8082/api/v1/users
 
 {
   "name": "NewProduct2",
@@ -18,7 +18,7 @@ POST localhost:8081/api/v1/users
 
 
 ### Update
-PUT localhost:8081/api/v1/users/1
+PUT localhost:8082/api/v1/users/1
 
 {
   "name": "newPillow",
@@ -28,4 +28,4 @@ PUT localhost:8081/api/v1/users/1
 
 
 ### Delete
-DELETE localhost:8081/api/v1/users/1
+DELETE localhost:8082/api/v1/users/1

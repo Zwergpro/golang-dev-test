@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "AdminService"
+      "name": "ApiService"
     }
   ],
   "consumes": [
@@ -18,7 +18,7 @@
   "paths": {
     "/api/v1/users": {
       "get": {
-        "operationId": "AdminService_ProductList",
+        "operationId": "ApiService_ProductList",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -50,11 +50,11 @@
           }
         ],
         "tags": [
-          "AdminService"
+          "ApiService"
         ]
       },
       "post": {
-        "operationId": "AdminService_ProductCreate",
+        "operationId": "ApiService_ProductCreate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -80,13 +80,13 @@
           }
         ],
         "tags": [
-          "AdminService"
+          "ApiService"
         ]
       }
     },
     "/api/v1/users/{id}": {
       "get": {
-        "operationId": "AdminService_ProductGet",
+        "operationId": "ApiService_ProductGet",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -111,11 +111,11 @@
           }
         ],
         "tags": [
-          "AdminService"
+          "ApiService"
         ]
       },
       "delete": {
-        "operationId": "AdminService_ProductDelete",
+        "operationId": "ApiService_ProductDelete",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -140,11 +140,11 @@
           }
         ],
         "tags": [
-          "AdminService"
+          "ApiService"
         ]
       },
       "put": {
-        "operationId": "AdminService_ProductUpdate",
+        "operationId": "ApiService_ProductUpdate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -190,7 +190,7 @@
           }
         ],
         "tags": [
-          "AdminService"
+          "ApiService"
         ]
       }
     }
