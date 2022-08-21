@@ -84,14 +84,15 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	p, err := products.BuildProduct(in.GetName(), in.GetPrice(), in.GetQuantity())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+	p := products.Product{
+		Name:     in.GetName(),
+		Price:    in.GetPrice(),
+		Quantity: in.GetQuantity(),
 	}
 
-	product, err := i.deps.ProductRepository.CreateProduct(ctx, *p)
+	product, err := i.deps.ProductRepository.CreateProduct(ctx, p)
 	if err != nil {
-		if errors.As(err, &repository.ProductAlreadyExists) {
+		if errors.Is(err, repository.ProductAlreadyExists) {
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}
 		log.Printf("[ERROR] ProductCreate: %v\n", err)

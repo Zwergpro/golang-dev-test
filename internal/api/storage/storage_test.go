@@ -124,5 +124,80 @@ func TestProductGet(t *testing.T) {
 		// assert
 		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
 	})
+}
 
+func TestProductCreate(t *testing.T) {
+	t.Run("success creating product", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().CreateProduct(gomock.Any(), products.Product{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}).Return(&products.Product{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}, nil)
+
+		// act
+		res, err := f.service.ProductCreate(context.Background(), &pb.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, res, &pb.ProductCreateResponse{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+	})
+
+	t.Run("fail with not found error", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().CreateProduct(gomock.Any(), products.Product{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}).Return(nil, repository.ProductAlreadyExists)
+
+		// act
+		_, err := f.service.ProductCreate(context.Background(), &pb.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = AlreadyExists desc = product already exists")
+	})
+
+	t.Run("fail with internal error", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().CreateProduct(gomock.Any(), products.Product{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}).Return(nil, errors.New("internal error"))
+
+		// act
+		_, err := f.service.ProductCreate(context.Background(), &pb.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
+	})
 }
