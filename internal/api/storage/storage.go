@@ -14,7 +14,7 @@ import (
 
 const maxTimeout = time.Millisecond * 27
 
-func New(deps Deps) pb.StorageServiceServer {
+func New(deps Deps) *implementation {
 	return &implementation{
 		deps: deps,
 	}
