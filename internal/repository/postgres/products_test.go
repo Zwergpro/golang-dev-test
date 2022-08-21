@@ -150,3 +150,53 @@ func TestDeleteProduct(t *testing.T) {
 		assert.EqualError(t, err, "Repository.DeleteProduct: to delete: internal error")
 	})
 }
+
+func TestUpdateProduct(t *testing.T) {
+	t.Run("success updating product", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.mockPool.ExpectExec(regexp.QuoteMeta(`UPDATE products SET name = $1, price = $2, quantity = $3 WHERE id = $4`)).
+			WithArgs("product1", uint64(1), uint64(1), uint64(1)).
+			WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+
+		// act
+		res, err := f.productRepo.UpdateProduct(context.Background(), products.Product{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, res, &products.Product{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+	})
+
+	t.Run("updating with internal error", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.mockPool.ExpectExec(regexp.QuoteMeta(`UPDATE products SET name = $1, price = $2, quantity = $3 WHERE id = $4`)).
+			WithArgs("product1", uint64(1), uint64(1), uint64(1)).
+			WillReturnError(errors.New("internal error"))
+
+		// act
+		_, err := f.productRepo.UpdateProduct(context.Background(), products.Product{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "Repository.UpdateProduct: to update: internal error")
+	})
+}
