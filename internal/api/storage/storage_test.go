@@ -201,3 +201,142 @@ func TestProductCreate(t *testing.T) {
 		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
 	})
 }
+
+func TestProductUpdate(t *testing.T) {
+	t.Run("success updating product", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().GetProductById(gomock.Any(), uint64(1)).Return(&products.Product{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}, nil)
+
+		f.productRepo.EXPECT().UpdateProduct(gomock.Any(), products.Product{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		}).Return(&products.Product{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		}, nil)
+
+		// act
+		res, err := f.service.ProductUpdate(context.Background(), &pb.ProductUpdateRequest{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, res, &pb.ProductUpdateResponse{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+	})
+
+	t.Run("product not found in GetProductById", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().GetProductById(gomock.Any(), uint64(1)).Return(nil, repository.ProductNotExists)
+
+		// act
+		_, err := f.service.ProductUpdate(context.Background(), &pb.ProductUpdateRequest{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = NotFound desc = product does not exist")
+	})
+
+	t.Run("internal error in GetProductById", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().GetProductById(gomock.Any(), uint64(1)).Return(nil, errors.New("internal error"))
+
+		// act
+		_, err := f.service.ProductUpdate(context.Background(), &pb.ProductUpdateRequest{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
+	})
+
+	t.Run("product not found in UpdateProduct", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().GetProductById(gomock.Any(), uint64(1)).Return(&products.Product{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}, nil)
+
+		f.productRepo.EXPECT().UpdateProduct(gomock.Any(), products.Product{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		}).Return(nil, repository.ProductNotExists)
+
+		// act
+		_, err := f.service.ProductUpdate(context.Background(), &pb.ProductUpdateRequest{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = NotFound desc = product does not exist")
+	})
+
+	t.Run("internal error in UpdateProduct", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().GetProductById(gomock.Any(), uint64(1)).Return(&products.Product{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}, nil)
+
+		f.productRepo.EXPECT().UpdateProduct(gomock.Any(), products.Product{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		}).Return(nil, errors.New("internal error"))
+
+		// act
+		_, err := f.service.ProductUpdate(context.Background(), &pb.ProductUpdateRequest{
+			Id:       uint64(1),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
+	})
+}

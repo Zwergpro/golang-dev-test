@@ -115,27 +115,19 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 
 	product, err := i.deps.ProductRepository.GetProductById(ctx, in.GetId())
 	if err != nil {
-		if errors.As(err, &repository.ProductNotExists) {
+		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		log.Printf("[ERROR] ProductUpdate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	if err = product.SetName(in.GetName()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	if err = product.SetPrice(in.GetPrice()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	if err = product.SetQuantity(in.GetQuantity()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
+	product.Name = in.GetName()
+	product.Price = in.GetPrice()
+	product.Quantity = in.GetQuantity()
 
 	if product, err = i.deps.ProductRepository.UpdateProduct(ctx, *product); err != nil {
-		if errors.As(err, &repository.ProductNotExists) {
+		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		log.Printf("[ERROR] ProductUpdate: %v\n", err)
