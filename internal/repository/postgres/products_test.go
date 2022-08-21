@@ -116,3 +116,37 @@ func TestCreateProduct(t *testing.T) {
 		assert.EqualError(t, err, "Repository.CreateProduct: insert: internal error")
 	})
 }
+
+func TestDeleteProduct(t *testing.T) {
+	t.Run("success deleting product", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.mockPool.ExpectExec(regexp.QuoteMeta(`DELETE FROM products WHERE id = $1`)).
+			WithArgs(uint64(1)).
+			WillReturnResult(pgxmock.NewResult("DELETE", 1))
+
+		// act
+		err := f.productRepo.DeleteProduct(context.Background(), 1)
+
+		// assert
+		require.NoError(t, err)
+	})
+
+	t.Run("deleting with internal error", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.mockPool.ExpectExec(regexp.QuoteMeta(`DELETE FROM products WHERE id = $1`)).
+			WithArgs(uint64(1)).
+			WillReturnError(errors.New("internal error"))
+
+		// act
+		err := f.productRepo.DeleteProduct(context.Background(), 1)
+
+		// assert
+		assert.EqualError(t, err, "Repository.DeleteProduct: to delete: internal error")
+	})
+}
