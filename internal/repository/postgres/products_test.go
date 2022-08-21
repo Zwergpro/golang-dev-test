@@ -68,3 +68,51 @@ func TestGetProductByID(t *testing.T) {
 		assert.EqualError(t, err, "Repository.GetProductById: select: scany: query one result row: internal error")
 	})
 }
+
+func TestCreateProduct(t *testing.T) {
+	t.Run("success creating product", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.mockPool.ExpectQuery(regexp.QuoteMeta(`INSERT INTO products (name, price, quantity) VALUES ($1,$2,$3) RETURNING id`)).
+			WithArgs("product1", uint64(1), uint64(1)).
+			WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(uint64(1)))
+
+		// act
+		res, err := f.productRepo.CreateProduct(context.Background(), products.Product{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, res, &products.Product{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+	})
+
+	t.Run("creating with internal error", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.mockPool.ExpectQuery(regexp.QuoteMeta(`INSERT INTO products (name, price, quantity) VALUES ($1,$2,$3) RETURNING id`)).
+			WithArgs("product1", uint64(1), uint64(1)).
+			WillReturnError(errors.New("internal error"))
+
+		// act
+		_, err := f.productRepo.CreateProduct(context.Background(), products.Product{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "Repository.CreateProduct: insert: internal error")
+	})
+}
