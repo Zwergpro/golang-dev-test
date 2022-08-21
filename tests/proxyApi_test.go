@@ -11,6 +11,54 @@ import (
 	"testing"
 )
 
+func TestTestProductListProxyApi(t *testing.T) {
+	t.Run("success getting empty result", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		pageNum := uint64(1)
+		pageSize := uint64(10)
+
+		//act
+		resp, err := ProxyApiClient.ProductList(context.Background(), &pbApi.ProductListRequest{Page: &pageNum, Size: &pageSize})
+
+		//assert
+		require.NoError(t, err)
+		assert.Equal(t, 0, len(resp.Products))
+	})
+	t.Run("success getting result", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		pageNum := uint64(1)
+		pageSize := uint64(10)
+
+		newProduct, err := ProxyApiClient.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+		if err != nil {
+			t.Fail()
+		}
+
+		//act
+		resp, err := ProxyApiClient.ProductList(context.Background(), &pbApi.ProductListRequest{Page: &pageNum, Size: &pageSize})
+
+		//assert
+		require.NoError(t, err)
+		assert.Equal(t, 1, len(resp.Products))
+		assert.Equal(t, &pbApi.ProductListResponse_Product{
+			Id:       newProduct.Id,
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}, resp.Products[0])
+	})
+}
+
 func TestProductCreateProxyApi(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		//arrange
