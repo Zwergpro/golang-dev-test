@@ -183,3 +183,157 @@ func TestProductCreateProxyApi(t *testing.T) {
 		assert.EqualError(t, err, expectedErr)
 	})
 }
+
+func TestProductUpdateProxyApi(t *testing.T) {
+	t.Run("success updating", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		newProduct, err := ProxyApiClient.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+		if err != nil {
+			t.Fail()
+		}
+
+		//act
+		resp, err := ProxyApiClient.ProductUpdate(context.Background(), &pbApi.ProductUpdateRequest{
+			Id:       newProduct.Id,
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+
+		//assert
+		require.NoError(t, err)
+		assert.Equal(t, resp.Id, newProduct.Id)
+		assert.Equal(t, resp.Name, "product2")
+		assert.Equal(t, resp.Price, uint64(2))
+		assert.Equal(t, resp.Quantity, uint64(2))
+	})
+
+	t.Run("product does not exist", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		//act
+		_, err := ProxyApiClient.ProductUpdate(context.Background(), &pbApi.ProductUpdateRequest{
+			Id:       10,
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+
+		//assert
+		assert.EqualError(t, err, "rpc error: code = NotFound desc = product not found")
+	})
+
+	t.Run("fail with wrong name", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		newProduct, err := ProxyApiClient.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+		if err != nil {
+			t.Fail()
+		}
+
+		//act
+		_, err = ProxyApiClient.ProductUpdate(context.Background(), &pbApi.ProductUpdateRequest{
+			Id:       newProduct.Id,
+			Name:     "",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+
+		//assert
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = name length must be greater than 0")
+	})
+
+	t.Run("fail with wrong price", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		newProduct, err := ProxyApiClient.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+		if err != nil {
+			t.Fail()
+		}
+
+		//act
+		_, err = ProxyApiClient.ProductUpdate(context.Background(), &pbApi.ProductUpdateRequest{
+			Id:       newProduct.Id,
+			Name:     "product2",
+			Price:    uint64(0),
+			Quantity: uint64(2),
+		})
+
+		//assert
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = price must be greater than 0")
+	})
+
+	t.Run("fail with wrong quantity", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		newProduct, err := ProxyApiClient.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+		if err != nil {
+			t.Fail()
+		}
+
+		//act
+		_, err = ProxyApiClient.ProductUpdate(context.Background(), &pbApi.ProductUpdateRequest{
+			Id:       newProduct.Id,
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(0),
+		})
+
+		//assert
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = quantity must be greater than 0")
+	})
+
+	t.Run("fail with wrong args", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		newProduct, err := ProxyApiClient.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+		if err != nil {
+			t.Fail()
+		}
+
+		//act
+		_, err = ProxyApiClient.ProductUpdate(context.Background(), &pbApi.ProductUpdateRequest{
+			Id:       newProduct.Id,
+			Name:     "",
+			Price:    uint64(0),
+			Quantity: uint64(0),
+		})
+
+		//assert
+		expectedErr := "rpc error: code = InvalidArgument desc = name length must be greater than 0; price must be greater than 0; quantity must be greater than 0"
+		assert.EqualError(t, err, expectedErr)
+	})
+}
