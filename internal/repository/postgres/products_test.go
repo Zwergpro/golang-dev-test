@@ -200,3 +200,80 @@ func TestUpdateProduct(t *testing.T) {
 		assert.EqualError(t, err, "Repository.UpdateProduct: to update: internal error")
 	})
 }
+
+func TestGetAllProducts(t *testing.T) {
+	t.Run("success getting all products", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, name, price, quantity FROM products ORDER BY id LIMIT 2 OFFSET 0`)).
+			WillReturnRows(pgxmock.NewRows([]string{"id", "name", "price", "quantity"}).
+				AddRow(uint64(1), "product1", uint64(1), uint64(1)).
+				AddRow(uint64(2), "product2", uint64(2), uint64(2)))
+
+		// act
+		res, err := f.productRepo.GetAllProducts(context.Background(), uint64(1), uint64(2))
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, res, []*products.Product{
+			{
+				Id:       uint64(1),
+				Name:     "product1",
+				Price:    uint64(1),
+				Quantity: uint64(1),
+			},
+			{
+				Id:       uint64(2),
+				Name:     "product2",
+				Price:    uint64(2),
+				Quantity: uint64(2),
+			},
+		})
+	})
+
+	t.Run("getting with internal error", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.mockPool.ExpectQuery(regexp.QuoteMeta(`SELECT id, name, price, quantity FROM products ORDER BY id LIMIT 2 OFFSET 0`)).
+			WillReturnError(errors.New("internal error"))
+
+		// act
+		_, err := f.productRepo.GetAllProducts(context.Background(), uint64(1), uint64(2))
+
+		// assert
+		assert.EqualError(t, err, "Repository.GetAllProducts: select: scany: query multiple result rows: internal error")
+	})
+}
+
+func TestGetPaginationLimitAndOffset(t *testing.T) {
+	t.Run("success getting pagination limit and offset", func(t *testing.T) {
+		// act
+		limit, offset := (&Repository{}).getPaginationLimitAndOffset(uint64(1), uint64(2))
+
+		// assert
+		assert.Equal(t, limit, uint64(2))
+		assert.Equal(t, offset, uint64(0))
+	})
+
+	t.Run("success getting pagination limit and offset with offset greater than 0", func(t *testing.T) {
+		// act
+		limit, offset := (&Repository{}).getPaginationLimitAndOffset(uint64(3), uint64(3))
+
+		// assert
+		assert.Equal(t, limit, uint64(3))
+		assert.Equal(t, offset, uint64(6))
+	})
+
+	t.Run("success getting pagination limit and offset with 0 values", func(t *testing.T) {
+		// act
+		limit, offset := (&Repository{}).getPaginationLimitAndOffset(uint64(0), uint64(0))
+
+		// assert
+		assert.Equal(t, limit, defaultProductsPageSize)
+		assert.Equal(t, offset, uint64(0))
+	})
+}
