@@ -4,8 +4,8 @@ type Repository struct {
 	warehouse *Warehouse
 }
 
-func NewRepository() *Repository {
+func NewRepository(warehouse *Warehouse) *Repository {
 	return &Repository{
-		warehouse: NewWarehouse(),
+		warehouse: warehouse,
 	}
 }
