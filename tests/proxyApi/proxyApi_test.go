@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package tests
+package proxyApi
 
 import (
 	"context"
@@ -41,7 +41,7 @@ func TestTestProductListProxyApi(t *testing.T) {
 			Quantity: uint64(1),
 		})
 		if err != nil {
-			t.Fail()
+			t.FailNow()
 		}
 
 		//act
@@ -71,7 +71,7 @@ func TestProductGetProxyApi(t *testing.T) {
 			Quantity: uint64(1),
 		})
 		if err != nil {
-			t.Fail()
+			t.FailNow()
 		}
 
 		//act
@@ -196,7 +196,7 @@ func TestProductUpdateProxyApi(t *testing.T) {
 			Quantity: uint64(1),
 		})
 		if err != nil {
-			t.Fail()
+			t.FailNow()
 		}
 
 		//act
@@ -243,7 +243,7 @@ func TestProductUpdateProxyApi(t *testing.T) {
 			Quantity: uint64(1),
 		})
 		if err != nil {
-			t.Fail()
+			t.FailNow()
 		}
 
 		//act
@@ -269,7 +269,7 @@ func TestProductUpdateProxyApi(t *testing.T) {
 			Quantity: uint64(1),
 		})
 		if err != nil {
-			t.Fail()
+			t.FailNow()
 		}
 
 		//act
@@ -295,7 +295,7 @@ func TestProductUpdateProxyApi(t *testing.T) {
 			Quantity: uint64(1),
 		})
 		if err != nil {
-			t.Fail()
+			t.FailNow()
 		}
 
 		//act
@@ -321,7 +321,7 @@ func TestProductUpdateProxyApi(t *testing.T) {
 			Quantity: uint64(1),
 		})
 		if err != nil {
-			t.Fail()
+			t.FailNow()
 		}
 
 		//act
@@ -350,7 +350,7 @@ func TestProductDeleteProxyApi(t *testing.T) {
 			Quantity: uint64(1),
 		})
 		if err != nil {
-			t.Fail()
+			t.FailNow()
 		}
 
 		//act
