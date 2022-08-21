@@ -12,6 +12,8 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.0
 	github.com/jackc/pgconn v1.13.0
 	github.com/jackc/pgx/v4 v4.17.0
+	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lib/pq v1.10.2
 	github.com/pashagolub/pgxmock v1.8.0
 	github.com/stretchr/testify v1.8.0
 	google.golang.org/genproto v0.0.0-20220719170305-83ca9fad585f
