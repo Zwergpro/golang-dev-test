@@ -50,12 +50,51 @@ func TestTestProductListProxyApi(t *testing.T) {
 		//assert
 		require.NoError(t, err)
 		assert.Equal(t, 1, len(resp.Products))
-		assert.Equal(t, &pbApi.ProductListResponse_Product{
+		assert.Equal(t, resp.Products[0], &pbApi.ProductListResponse_Product{
 			Id:       newProduct.Id,
 			Name:     "product1",
 			Price:    uint64(1),
 			Quantity: uint64(1),
-		}, resp.Products[0])
+		})
+	})
+}
+
+func TestProductGetProxyApi(t *testing.T) {
+	t.Run("success getting result", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		newProduct, err := ProxyApiClient.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+		if err != nil {
+			t.Fail()
+		}
+
+		//act
+		resp, err := ProxyApiClient.ProductGet(context.Background(), &pbApi.ProductGetRequest{Id: newProduct.Id})
+
+		//assert
+		require.NoError(t, err)
+		assert.Equal(t, resp.Id, newProduct.Id)
+		assert.Equal(t, resp.Name, "product1")
+		assert.Equal(t, resp.Price, uint64(1))
+		assert.Equal(t, resp.Quantity, uint64(1))
+	})
+
+	t.Run("product does not exists", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		//act
+		_, err := ProxyApiClient.ProductGet(context.Background(), &pbApi.ProductGetRequest{Id: 10})
+
+		//assert
+		assert.EqualError(t, err, "rpc error: code = NotFound desc = product not found")
 	})
 }
 
