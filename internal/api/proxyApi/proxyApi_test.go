@@ -22,7 +22,7 @@ func TestProductGet(t *testing.T) {
 		f.storageClient.EXPECT().ProductGet(gomock.Any(), &pbStorage.ProductGetRequest{Id: uint64(1)}).
 			Return(&pbStorage.ProductGetResponse{
 				Id:       uint64(1),
-				Name:     "product 1",
+				Name:     "product1",
 				Price:    uint64(1),
 				Quantity: uint64(1),
 			}, nil)
@@ -34,7 +34,7 @@ func TestProductGet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, res, &pbApi.ProductGetResponse{
 			Id:       uint64(1),
-			Name:     "product 1",
+			Name:     "product1",
 			Price:    uint64(1),
 			Quantity: uint64(1),
 		})
@@ -68,5 +68,127 @@ func TestProductGet(t *testing.T) {
 
 		// assert
 		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
+	})
+}
+
+func TestProductCreate(t *testing.T) {
+	t.Run("success creating", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.storageClient.EXPECT().ProductCreate(gomock.Any(), &pbStorage.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}).Return(&pbStorage.ProductCreateResponse{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}, nil)
+
+		// act
+		res, err := f.service.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, res, &pbApi.ProductCreateResponse{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+	})
+
+	t.Run("StorageClient fail", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.storageClient.EXPECT().ProductCreate(gomock.Any(), &pbStorage.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		}).Return(nil, status.Error(codes.Internal, "internal error"))
+
+		// act
+		_, err := f.service.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
+	})
+
+	t.Run("fail with wrong name", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		// act
+		_, err := f.service.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = name length must be greater than 0")
+	})
+
+	t.Run("fail with wrong price", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		// act
+		_, err := f.service.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(0),
+			Quantity: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = price must be greater than 0")
+	})
+
+	t.Run("fail with wrong quantity", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		// act
+		_, err := f.service.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(0),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = quantity must be greater than 0")
+	})
+
+	t.Run("fail with wrong args", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		// act
+		_, err := f.service.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "",
+			Price:    uint64(0),
+			Quantity: uint64(0),
+		})
+
+		// assert
+		expectedErr := "rpc error: code = InvalidArgument desc = name length must be greater than 0; price must be greater than 0; quantity must be greater than 0"
+		assert.EqualError(t, err, expectedErr)
 	})
 }
