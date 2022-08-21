@@ -337,3 +337,28 @@ func TestProductUpdateProxyApi(t *testing.T) {
 		assert.EqualError(t, err, expectedErr)
 	})
 }
+
+func TestProductDeleteProxyApi(t *testing.T) {
+	t.Run("success deleting", func(t *testing.T) {
+		//arrange
+		DB.SetUp(t)
+		defer DB.TearDown()
+
+		newProduct, err := ProxyApiClient.ProductCreate(context.Background(), &pbApi.ProductCreateRequest{
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+		if err != nil {
+			t.Fail()
+		}
+
+		//act
+		_, err = ProxyApiClient.ProductDelete(context.Background(), &pbApi.ProductDeleteRequest{
+			Id: newProduct.Id,
+		})
+
+		//assert
+		require.NoError(t, err)
+	})
+}
