@@ -346,3 +346,60 @@ func TestProductUpdate(t *testing.T) {
 		assert.EqualError(t, err, expectedErr)
 	})
 }
+
+func TestProductDelete(t *testing.T) {
+	t.Run("success deleting", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.storageClient.EXPECT().ProductDelete(gomock.Any(), &pbStorage.ProductDeleteRequest{
+			Id: uint64(1),
+		}).Return(&pbStorage.ProductDeleteResponse{}, nil)
+
+		// act
+		res, err := f.service.ProductDelete(context.Background(), &pbApi.ProductDeleteRequest{
+			Id: uint64(1),
+		})
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, res, &pbApi.ProductDeleteResponse{})
+	})
+
+	t.Run("product does not exist", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.storageClient.EXPECT().ProductDelete(gomock.Any(), &pbStorage.ProductDeleteRequest{
+			Id: uint64(1),
+		}).Return(nil, status.Error(codes.NotFound, "product not found"))
+
+		// act
+		_, err := f.service.ProductDelete(context.Background(), &pbApi.ProductDeleteRequest{
+			Id: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = NotFound desc = product not found")
+	})
+
+	t.Run("storageClient internal error", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		f.storageClient.EXPECT().ProductDelete(gomock.Any(), &pbStorage.ProductDeleteRequest{
+			Id: uint64(1),
+		}).Return(nil, status.Error(codes.Internal, "internal error"))
+
+		// act
+		_, err := f.service.ProductDelete(context.Background(), &pbApi.ProductDeleteRequest{
+			Id: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
+	})
+}
