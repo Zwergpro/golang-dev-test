@@ -340,3 +340,51 @@ func TestProductUpdate(t *testing.T) {
 		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
 	})
 }
+
+func TestProductDelete(t *testing.T) {
+	t.Run("success deleting product", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().DeleteProduct(gomock.Any(), uint64(1)).Return(nil)
+
+		// act
+		res, err := f.service.ProductDelete(context.Background(), &pb.ProductDeleteRequest{
+			Id: uint64(1),
+		})
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, res, &pb.ProductDeleteResponse{})
+	})
+
+	t.Run("product not found", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().DeleteProduct(gomock.Any(), uint64(1)).Return(repository.ProductNotExists)
+
+		// act
+		_, err := f.service.ProductDelete(context.Background(), &pb.ProductDeleteRequest{
+			Id: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = NotFound desc = product does not exist")
+	})
+
+	t.Run("internal error", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+
+		f.productRepo.EXPECT().DeleteProduct(gomock.Any(), uint64(1)).Return(errors.New("internal error"))
+
+		// act
+		_, err := f.service.ProductDelete(context.Background(), &pb.ProductDeleteRequest{
+			Id: uint64(1),
+		})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
+	})
+}

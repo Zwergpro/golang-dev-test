@@ -149,7 +149,7 @@ func (i *implementation) ProductDelete(_ context.Context, in *pb.ProductDeleteRe
 	defer cancel()
 
 	if err := i.deps.ProductRepository.DeleteProduct(ctx, in.GetId()); err != nil {
-		if errors.As(err, &repository.ProductNotExists) {
+		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		log.Printf("[ERROR] ProductDelete: %v\n", err)
