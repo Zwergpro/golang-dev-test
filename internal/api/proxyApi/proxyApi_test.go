@@ -13,6 +13,74 @@ import (
 	"testing"
 )
 
+func TestProductList(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		stream := makeProductListResponseStreamMock()
+		defer stream.Close()
+
+		stream.Send(&pbStorage.ProductListResponse{
+			Id:       uint64(1),
+			Name:     "product1",
+			Price:    uint64(1),
+			Quantity: uint64(1),
+		})
+		stream.Send(&pbStorage.ProductListResponse{
+			Id:       uint64(2),
+			Name:     "product2",
+			Price:    uint64(2),
+			Quantity: uint64(2),
+		})
+
+		pageNum := uint64(1)
+		pageSize := uint64(1)
+		f.storageClient.EXPECT().ProductList(gomock.Any(), &pbStorage.ProductListRequest{Page: &pageNum, Size: &pageSize}).
+			Return(stream, nil)
+
+		// act
+		res, err := f.service.ProductList(context.Background(), &pbApi.ProductListRequest{Page: &pageNum, Size: &pageSize})
+
+		// assert
+		require.NoError(t, err)
+		assert.Equal(t, res, &pbApi.ProductListResponse{
+			Products: []*pbApi.ProductListResponse_Product{
+				{
+					Id:       uint64(1),
+					Name:     "product1",
+					Price:    uint64(1),
+					Quantity: uint64(1),
+				},
+				{
+					Id:       uint64(2),
+					Name:     "product2",
+					Price:    uint64(2),
+					Quantity: uint64(2),
+				},
+			},
+		})
+	})
+
+	t.Run("success", func(t *testing.T) {
+		// arrange
+		f := SetUp(t)
+		defer f.TearDown()
+
+		pageNum := uint64(1)
+		pageSize := uint64(1)
+		f.storageClient.EXPECT().ProductList(gomock.Any(), &pbStorage.ProductListRequest{Page: &pageNum, Size: &pageSize}).
+			Return(nil, status.Error(codes.Internal, "internal error"))
+
+		// act
+		_, err := f.service.ProductList(context.Background(), &pbApi.ProductListRequest{Page: &pageNum, Size: &pageSize})
+
+		// assert
+		assert.EqualError(t, err, "rpc error: code = Internal desc = internal error")
+	})
+}
+
 func TestProductGet(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// arrange
