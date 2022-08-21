@@ -64,7 +64,7 @@ func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest)
 
 	p, err := i.deps.ProductRepository.GetProductById(ctx, in.GetId())
 	if err != nil {
-		if errors.As(err, &repository.ProductNotExists) {
+		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		log.Printf("[ERROR] ProductGet: %v\n", err)
