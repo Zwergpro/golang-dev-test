@@ -21,8 +21,11 @@ var (
 
 func init() {
 	cfg, err := config.FromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	conn, err := grpc.Dial(cfg.Host, grpc.WithInsecure(), grpc.WithTimeout(3*time.Second))
+	conn, err := grpc.Dial(cfg.ProxyApiHost, grpc.WithInsecure(), grpc.WithTimeout(3*time.Second))
 	if err != nil {
 		log.Fatal(err)
 	}

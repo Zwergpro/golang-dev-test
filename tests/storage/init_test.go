@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"homework-1/tests/config"
 	"homework-1/tests/postgres"
 )
 
@@ -19,9 +20,12 @@ var (
 )
 
 func init() {
-	//cfg, err := config.FromEnv()
+	cfg, err := config.FromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	conn, err := grpc.Dial("0.0.0.0:8080", grpc.WithInsecure(), grpc.WithTimeout(3*time.Second))
+	conn, err := grpc.Dial(cfg.StorageHost, grpc.WithInsecure(), grpc.WithTimeout(3*time.Second))
 	if err != nil {
 		log.Fatal(err)
 	}

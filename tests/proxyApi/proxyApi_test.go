@@ -27,6 +27,7 @@ func TestTestProductListProxyApi(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 0, len(resp.Products))
 	})
+
 	t.Run("success getting result", func(t *testing.T) {
 		//arrange
 		DB.SetUp(t)

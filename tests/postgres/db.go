@@ -16,6 +16,7 @@ import (
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/lib/pq"
+	"homework-1/tests/config"
 	"time"
 )
 
@@ -25,18 +26,18 @@ type TDB struct {
 }
 
 func NewFromEnv(ctx context.Context) *TDB {
-	//cfg, err := config.FromEnv()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	cfg, err := config.FromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	psqlConn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		"localhost",
-		6432,
-		"postgres",
-		"postgres",
-		"postgres")
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBName)
 
 	pool, err := pgxpool.Connect(ctx, psqlConn)
 	if err != nil {
