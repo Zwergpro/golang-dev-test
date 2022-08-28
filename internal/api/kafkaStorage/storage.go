@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"homework-1/internal/metrics"
-	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/storage/v1"
 	"time"
@@ -95,84 +94,12 @@ func (i *implementation) ProductGet(ctx context.Context, in *pb.ProductGetReques
 	}, nil
 }
 
-func (i *implementation) ProductCreate(ctx context.Context, in *pb.ProductCreateRequest) (*pb.ProductCreateResponse, error) {
-	i.deps.Metrics.IncomingRequestCounter.Inc()
-
-	md, _ := metadata.FromIncomingContext(ctx)
-	log.Infof("ProductCreate request metadata: %v", md)
-	log.Debugf("ProductCreate request data: %v", in)
-
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
-	defer cancel()
-
-	p := products.Product{
-		Name:     in.GetName(),
-		Price:    in.GetPrice(),
-		Quantity: in.GetQuantity(),
-	}
-
-	product, err := i.deps.ProductRepository.CreateProduct(ctx, p)
-	if err != nil {
-		if errors.Is(err, repository.ProductAlreadyExists) {
-			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
-			return nil, status.Error(codes.AlreadyExists, err.Error())
-		}
-		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.WithError(err).Error("ProductRepository: ProductCreate: internal error")
-		return nil, status.Error(codes.Internal, "internal error")
-	}
-
-	i.deps.Metrics.SuccessfulRequestCounter.Inc()
-	return &pb.ProductCreateResponse{
-		Id:       product.GetId(),
-		Name:     product.GetName(),
-		Price:    product.GetPrice(),
-		Quantity: product.GetQuantity(),
-	}, nil
+func (i *implementation) ProductCreate(_ context.Context, _ *pb.ProductCreateRequest) (*pb.ProductCreateResponse, error) {
+	return nil, status.Error(codes.Unavailable, "Unavailable")
 }
 
-func (i *implementation) ProductUpdate(ctx context.Context, in *pb.ProductUpdateRequest) (*pb.ProductUpdateResponse, error) {
-	i.deps.Metrics.IncomingRequestCounter.Inc()
-
-	md, _ := metadata.FromIncomingContext(ctx)
-	log.Infof("ProductUpdate request metadata: %v", md)
-	log.Debugf("ProductUpdate request data: %v", in)
-
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
-	defer cancel()
-
-	product, err := i.deps.ProductRepository.GetProductById(ctx, in.GetId())
-	if err != nil {
-		if errors.Is(err, repository.ProductNotExists) {
-			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.WithError(err).Error("ProductRepository: GetProductById: internal error")
-		return nil, status.Error(codes.Internal, "internal error")
-	}
-
-	product.Name = in.GetName()
-	product.Price = in.GetPrice()
-	product.Quantity = in.GetQuantity()
-
-	if product, err = i.deps.ProductRepository.UpdateProduct(ctx, *product); err != nil {
-		if errors.Is(err, repository.ProductNotExists) {
-			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.WithError(err).Error("ProductRepository: ProductUpdate: internal error")
-		return nil, status.Error(codes.Internal, "internal error")
-	}
-
-	i.deps.Metrics.SuccessfulRequestCounter.Inc()
-	return &pb.ProductUpdateResponse{
-		Id:       product.GetId(),
-		Name:     product.GetName(),
-		Price:    product.GetPrice(),
-		Quantity: product.GetQuantity(),
-	}, nil
+func (i *implementation) ProductUpdate(_ context.Context, _ *pb.ProductUpdateRequest) (*pb.ProductUpdateResponse, error) {
+	return nil, status.Error(codes.Unavailable, "Unavailable")
 }
 
 func (i *implementation) ProductDelete(ctx context.Context, in *pb.ProductDeleteRequest) (*pb.ProductDeleteResponse, error) {

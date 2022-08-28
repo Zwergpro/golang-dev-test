@@ -124,4 +124,17 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 			}
 		}
 	}()
+
+	go func() {
+		ctx := context.Background()
+		consumer := &consumers.ProductUpdateConsumer{
+			ProductRepository: productRepository,
+		}
+		for {
+			if err = client.Consume(ctx, []string{"productUpdate"}, consumer); err != nil {
+				log.WithError(err).Error("on consume productUpdate")
+				time.Sleep(time.Second * 3)
+			}
+		}
+	}()
 }
