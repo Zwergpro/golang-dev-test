@@ -3,13 +3,14 @@ package storage
 import (
 	"context"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"homework-1/internal/metrics"
 	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/storage/v1"
-	"log"
 	"time"
 )
 
@@ -33,15 +34,18 @@ type Deps struct {
 
 func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageService_ProductListServer) error {
 	i.deps.Metrics.IncomingRequestCounter.Inc()
-	log.Printf("[INFO] ProductList: %v", in)
+
+	md, _ := metadata.FromIncomingContext(srv.Context())
+	log.Infof("ProductList request metadata: %v", md)
+	log.Debugf("ProductList request data: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
 	allProducts, err := i.deps.ProductRepository.GetAllProducts(ctx, in.GetPage(), in.GetSize())
 	if err != nil {
-		log.Printf("[ERROR] ProductList: %v\n", err)
 		i.deps.Metrics.FailedRequestCounter.Inc()
+		log.WithError(err).Error("ProductRepository: GetAllProducts: internal error")
 		return status.Error(codes.Internal, "internal error")
 	}
 
@@ -53,7 +57,7 @@ func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageSe
 			Quantity: product.GetQuantity(),
 		}
 		if err = srv.Send(&productResponse); err != nil {
-			log.Printf("[ERROR] ProductList send: %v\n", product)
+			log.WithError(err).Error("ProductList send")
 		}
 	}
 
@@ -61,9 +65,12 @@ func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageSe
 	return nil
 }
 
-func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest) (*pb.ProductGetResponse, error) {
+func (i *implementation) ProductGet(ctx context.Context, in *pb.ProductGetRequest) (*pb.ProductGetResponse, error) {
 	i.deps.Metrics.IncomingRequestCounter.Inc()
-	log.Printf("[INFO] ProductGet: %v", in)
+
+	md, _ := metadata.FromIncomingContext(ctx)
+	log.Infof("ProductGet request metadata: %v", md)
+	log.Debugf("ProductGet request data: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
@@ -75,7 +82,7 @@ func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest)
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.Printf("[ERROR] ProductGet: %v\n", err)
+		log.WithError(err).Error("ProductRepository: GetProductById: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -88,9 +95,12 @@ func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest)
 	}, nil
 }
 
-func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRequest) (*pb.ProductCreateResponse, error) {
+func (i *implementation) ProductCreate(ctx context.Context, in *pb.ProductCreateRequest) (*pb.ProductCreateResponse, error) {
 	i.deps.Metrics.IncomingRequestCounter.Inc()
-	log.Printf("[INFO] ProductCreate: %v", in)
+
+	md, _ := metadata.FromIncomingContext(ctx)
+	log.Infof("ProductCreate request metadata: %v", md)
+	log.Debugf("ProductCreate request data: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
@@ -108,7 +118,7 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.Printf("[ERROR] ProductCreate: %v\n", err)
+		log.WithError(err).Error("ProductRepository: ProductCreate: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -121,9 +131,12 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 	}, nil
 }
 
-func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRequest) (*pb.ProductUpdateResponse, error) {
+func (i *implementation) ProductUpdate(ctx context.Context, in *pb.ProductUpdateRequest) (*pb.ProductUpdateResponse, error) {
 	i.deps.Metrics.IncomingRequestCounter.Inc()
-	log.Printf("[INFO] ProductUpdate: %v", in)
+
+	md, _ := metadata.FromIncomingContext(ctx)
+	log.Infof("ProductUpdate request metadata: %v", md)
+	log.Debugf("ProductUpdate request data: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
@@ -135,7 +148,7 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.Printf("[ERROR] ProductUpdate: %v\n", err)
+		log.WithError(err).Error("ProductRepository: GetProductById: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -149,7 +162,7 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.Printf("[ERROR] ProductUpdate: %v\n", err)
+		log.WithError(err).Error("ProductRepository: ProductUpdate: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -162,9 +175,12 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 	}, nil
 }
 
-func (i *implementation) ProductDelete(_ context.Context, in *pb.ProductDeleteRequest) (*pb.ProductDeleteResponse, error) {
+func (i *implementation) ProductDelete(ctx context.Context, in *pb.ProductDeleteRequest) (*pb.ProductDeleteResponse, error) {
 	i.deps.Metrics.IncomingRequestCounter.Inc()
-	log.Printf("[INFO] ProductDelete: %v", in)
+
+	md, _ := metadata.FromIncomingContext(ctx)
+	log.Infof("ProductDelete request metadata: %v", md)
+	log.Debugf("ProductDelete request data: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
@@ -176,7 +192,7 @@ func (i *implementation) ProductDelete(_ context.Context, in *pb.ProductDeleteRe
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.Printf("[ERROR] ProductDelete: %v\n", err)
+		log.WithError(err).Error("ProductRepository: ProductDelete: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 

@@ -4,19 +4,23 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"homework-1/config"
 	"homework-1/internal/api/storage"
 	"homework-1/internal/metrics"
 	postgresRepository "homework-1/internal/repository/postgres"
 	pbStorage "homework-1/pkg/api/storage/v1"
-	"log"
 	"net"
 	"net/http"
 )
 
 // сервис для работы с базами данных
 func main() {
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -51,7 +55,7 @@ func main() {
 	appMetrics.Publish()
 
 	go func() {
-		log.Printf("[INFO] starting metrics http server on %s", config.StorageStatAddress)
+		log.Infof("starting metrics http server on %s", config.StorageStatAddress)
 		if err = http.ListenAndServe(config.StorageStatAddress, nil); err != nil {
 			log.Fatal(err)
 		}
@@ -68,7 +72,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("[INFO] starting grpc server on %s", config.StorageServiceAddress)
+	log.Infof("starting grpc server on %s", config.StorageServiceAddress)
 	if err = grpcServer.Serve(listener); err != nil {
 		log.Fatal(err)
 	}

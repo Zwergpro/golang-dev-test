@@ -1,6 +1,7 @@
 package main
 
 import (
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"homework-1/config"
@@ -8,12 +9,15 @@ import (
 	"homework-1/internal/metrics"
 	pbStorage "homework-1/pkg/api/storage/v1"
 	pbApi "homework-1/pkg/api/v1"
-	"log"
 	"net"
 	"net/http"
 )
 
 func main() {
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+
 	grpcServer := grpc.NewServer()
 
 	conn, err := grpc.Dial(config.StorageServiceAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -27,7 +31,7 @@ func main() {
 	appMetrics.Publish()
 
 	go func() {
-		log.Printf("[INFO] starting metrics http server on %s", config.ProxyApiStatAddress)
+		log.Infof("starting metrics http server on %s", config.ProxyApiStatAddress)
 		if err = http.ListenAndServe(config.ProxyApiStatAddress, nil); err != nil {
 			log.Fatal(err)
 		}
@@ -43,7 +47,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("[INFO] starting grpc server on %s", config.ProxyApiServiceAddress)
+	log.Infof("starting grpc server on %s", config.ProxyApiServiceAddress)
 	if err = grpcServer.Serve(listener); err != nil {
 		log.Fatal(err)
 	}

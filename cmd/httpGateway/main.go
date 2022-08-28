@@ -4,12 +4,12 @@ import (
 	"context"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"homework-1/config"
 	gw "homework-1/pkg/api/v1"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
