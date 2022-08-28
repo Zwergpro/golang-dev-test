@@ -4,7 +4,10 @@ import (
 	"context"
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
 	"google.golang.org/protobuf/proto"
+	"homework-1/config"
+	"homework-1/internal/metrics"
 	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/storage/v1"
 	"time"
@@ -12,9 +15,11 @@ import (
 
 type ProductDeleteConsumer struct {
 	ProductRepository repository.Product
+	Metrics           *metrics.Metrics
 }
 
 func (c *ProductDeleteConsumer) Setup(_ sarama.ConsumerGroupSession) error {
+	log.Info("starting productDeleteConsuming")
 	return nil
 }
 
@@ -33,9 +38,12 @@ func (c *ProductDeleteConsumer) ConsumeClaim(session sarama.ConsumerGroupSession
 				log.Info("Data channel closed")
 				return nil
 			}
+			c.Metrics.IncomingRequestCounter.Inc()
+			session.MarkMessage(msg, "")
 
 			in := pb.ProductDeleteRequest{}
 			if err := proto.Unmarshal(msg.Value, &in); err != nil {
+				c.Metrics.FailedRequestCounter.Inc()
 				log.WithError(err).Error("Failed to unmarshal message")
 				continue
 			}
@@ -45,11 +53,31 @@ func (c *ProductDeleteConsumer) ConsumeClaim(session sarama.ConsumerGroupSession
 
 			err := c.ProductRepository.DeleteProduct(ctx, in.GetId())
 			if err != nil {
+				c.Metrics.FailedRequestCounter.Inc()
 				log.WithError(err).Error("ProductRepository: DeleteProduct: internal error")
 			} else {
+				c.Metrics.SuccessfulRequestCounter.Inc()
 				log.Infof("Product deleted: %d", in.GetId())
 			}
-			session.MarkMessage(msg, "")
+		}
+	}
+}
+
+func (c *ProductDeleteConsumer) StartConsuming(ctx context.Context) {
+	saramaConfig := sarama.NewConfig()
+	saramaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
+	client, err := sarama.NewConsumerGroup(config.GetKafkaBrokers(), "productDeleteConsuming", saramaConfig)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to create kafka consumer group: productDeleteConsuming")
+		return
+	}
+
+	handler := otelsarama.WrapConsumerGroupHandler(c)
+
+	for {
+		if err = client.Consume(ctx, []string{"productDelete"}, handler); err != nil {
+			log.WithError(err).Error("on consume productDelete")
+			time.Sleep(time.Second * 3)
 		}
 	}
 }

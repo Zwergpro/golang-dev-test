@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Shopify/sarama"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
 	"google.golang.org/grpc"
 	"homework-1/config"
 	"homework-1/internal/api/kafkaStorage"
@@ -19,16 +17,15 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"time"
 )
 
 // сервис для работы с базами данных
 func main() {
 	SetUpLogger()
 
-	err := opentelemetry.SetGlobalTracer("kafka-storage", "http://localhost:14268/api/traces")
+	err := opentelemetry.SetGlobalTracer("kafka-storage", config.TracerUrl)
 	if err != nil {
-		log.Fatalf("failed to create tracer: %v", err)
+		log.WithError(err).Fatal("failed to create tracer")
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -45,12 +42,12 @@ func main() {
 
 	pool, err := pgxpool.Connect(ctx, psqlConn)
 	if err != nil {
-		log.Fatal("can't connect to database", err)
+		log.WithError(err).Fatal("failed to connect to postgres")
 	}
 	defer pool.Close()
 
 	if err = pool.Ping(ctx); err != nil {
-		log.Fatal("ping database error", err)
+		log.WithError(err).Fatal("failed to ping postgres")
 	}
 
 	poolConfig := pool.Config()
@@ -70,11 +67,11 @@ func main() {
 	go func() {
 		log.Infof("starting metrics http server on %s", config.StorageStatAddress)
 		if err = http.ListenAndServe(config.StorageStatAddress, nil); err != nil {
-			log.Fatal(err)
+			log.WithError(err).Fatal("failed to start metrics http server")
 		}
 	}()
 
-	runStorageKafkaConsumers(postgresRepository.NewRepository(pool))
+	runStorageKafkaConsumers(postgresRepository.NewRepository(pool), appMetrics)
 
 	deps := kafkaStorage.Deps{
 		ProductRepository: postgresRepository.NewRepository(pool),
@@ -85,11 +82,11 @@ func main() {
 
 	listener, err := net.Listen("tcp", config.StorageServiceAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(err).Fatal("failed to listen")
 	}
 	log.Infof("starting grpc server on %s", config.StorageServiceAddress)
 	if err = grpcServer.Serve(listener); err != nil {
-		log.Fatal(err)
+		log.WithError(err).Fatal("failed to start grpc server")
 	}
 }
 
@@ -103,72 +100,22 @@ func SetUpLogger() {
 	}
 }
 
-func runStorageKafkaConsumers(productRepository repository.Product) {
-	brokers := []string{"localhost:29091", "localhost:19091", "localhost:39091"}
-	saramaConfig := sarama.NewConfig()
-	saramaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
+func runStorageKafkaConsumers(productRepository repository.Product, appMetrics *metrics.Metrics) {
+	productCreateConsumer := &consumers.ProductCreateConsumer{
+		ProductRepository: productRepository,
+		Metrics:           appMetrics,
+	}
+	go productCreateConsumer.StartConsuming(context.Background())
 
-	go func() {
-		client, err := sarama.NewConsumerGroup(brokers, "productCreateConsuming", saramaConfig)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
+	productUpdateConsumer := &consumers.ProductUpdateConsumer{
+		ProductRepository: productRepository,
+		Metrics:           appMetrics,
+	}
+	go productUpdateConsumer.StartConsuming(context.Background())
 
-		ctx := context.Background()
-		consumer := &consumers.ProductCreateConsumer{
-			ProductRepository: productRepository,
-		}
-		handler := otelsarama.WrapConsumerGroupHandler(consumer)
-
-		log.Info("starting productCreateConsumer")
-		for {
-			if err := client.Consume(ctx, []string{"productCreate"}, handler); err != nil {
-				log.WithError(err).Error("on consume productCreate")
-				time.Sleep(time.Second * 3)
-			}
-		}
-	}()
-
-	go func() {
-		client, err := sarama.NewConsumerGroup(brokers, "productUpdateConsuming", saramaConfig)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-
-		ctx := context.Background()
-		consumer := &consumers.ProductUpdateConsumer{
-			ProductRepository: productRepository,
-		}
-		handler := otelsarama.WrapConsumerGroupHandler(consumer)
-
-		log.Info("starting productUpdateConsumer")
-		for {
-			if err = client.Consume(ctx, []string{"productUpdate"}, handler); err != nil {
-				log.WithError(err).Error("on consume productUpdate")
-				time.Sleep(time.Second * 3)
-			}
-		}
-	}()
-
-	go func() {
-		client, err := sarama.NewConsumerGroup(brokers, "productDeleteConsuming", saramaConfig)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-
-		ctx := context.Background()
-		consumer := &consumers.ProductDeleteConsumer{
-			ProductRepository: productRepository,
-		}
-
-		handler := otelsarama.WrapConsumerGroupHandler(consumer)
-
-		log.Info("starting productDeleteConsumer")
-		for {
-			if err = client.Consume(ctx, []string{"productDelete"}, handler); err != nil {
-				log.WithError(err).Error("on consume productDelete")
-				time.Sleep(time.Second * 3)
-			}
-		}
-	}()
+	productDeleteConsumer := &consumers.ProductDeleteConsumer{
+		ProductRepository: productRepository,
+		Metrics:           appMetrics,
+	}
+	go productDeleteConsumer.StartConsuming(context.Background())
 }
