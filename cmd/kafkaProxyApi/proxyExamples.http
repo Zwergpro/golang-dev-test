@@ -23,7 +23,7 @@ GRPC localhost:8081/api.v1.ApiService/ProductGet
 GRPC localhost:8081/api.v1.ApiService/ProductCreate
 
 {
-  "name": "product 2",
+  "name": "product 4",
   "price": 30,
   "quantity": 100
 }
@@ -33,7 +33,7 @@ GRPC localhost:8081/api.v1.ApiService/ProductCreate
 GRPC localhost:8081/api.v1.ApiService/ProductUpdate
 
 {
-  "id": 134,
+  "id": 137,
   "name": "product 2 updated",
   "price": 300,
   "quantity": 200
@@ -44,5 +44,5 @@ GRPC localhost:8081/api.v1.ApiService/ProductUpdate
 GRPC localhost:8081/api.v1.ApiService/ProductDelete
 
 {
-  "id": 134
+  "id": 137
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
 	"google.golang.org/protobuf/proto"
 	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
@@ -34,6 +35,8 @@ func (c *ProductCreateConsumer) ConsumeClaim(session sarama.ConsumerGroupSession
 				log.Info("Data channel closed")
 				return nil
 			}
+
+			otelsarama.NewConsumerMessageCarrier(msg)
 
 			in := pb.ProductCreateRequest{}
 			if err := proto.Unmarshal(msg.Value, &in); err != nil {

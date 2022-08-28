@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"homework-1/config"
@@ -19,7 +20,7 @@ import (
 func main() {
 	SetUpLogger()
 
-	err := opentelemetry.SetGlobalTracer("proxy-apy", "http://localhost:14268/api/traces")
+	err := opentelemetry.SetGlobalTracer("kafka-proxy-apy", "http://localhost:14268/api/traces")
 	if err != nil {
 		log.Fatalf("failed to create tracer: %v", err)
 	}
@@ -54,10 +55,13 @@ func main() {
 	brokers := []string{"localhost:29091", "localhost:19091", "localhost:39091"}
 	cfg := sarama.NewConfig()
 	cfg.Producer.Return.Successes = true
+
 	syncProducer, err := sarama.NewSyncProducer(brokers, cfg)
 	if err != nil {
 		log.Fatalf("sync kafka: %v", err)
 	}
+
+	syncProducer = otelsarama.WrapSyncProducer(cfg, syncProducer)
 
 	deps := kafkaProxyApi.Deps{
 		StorageClient: client,

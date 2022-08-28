@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -150,10 +151,14 @@ func (i *implementation) ProductCreate(ctx context.Context, in *pbApi.ProductCre
 
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
 
-	_, _, err = i.deps.Producer.SendMessage(&sarama.ProducerMessage{
+	msg := sarama.ProducerMessage{
 		Topic: "productCreate",
 		Value: sarama.ByteEncoder(requestData),
-	})
+	}
+
+	otelsarama.NewProducerMessageCarrier(&msg)
+
+	_, _, err = i.deps.Producer.SendMessage(&msg)
 	if err != nil {
 		i.deps.Metrics.FailedRequestCounter.Inc()
 		log.WithError(err).Error("ProductCreate: Producer: SendMessage: internal error")
@@ -200,11 +205,14 @@ func (i *implementation) ProductUpdate(ctx context.Context, in *pbApi.ProductUpd
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	i.deps.Metrics.OutgoingRequestCounter.Inc()
-	_, _, err = i.deps.Producer.SendMessage(&sarama.ProducerMessage{
+	msg := sarama.ProducerMessage{
 		Topic: "productUpdate",
 		Value: sarama.ByteEncoder(requestData),
-	})
+	}
+	otelsarama.NewProducerMessageCarrier(&msg)
+
+	i.deps.Metrics.OutgoingRequestCounter.Inc()
+	_, _, err = i.deps.Producer.SendMessage(&msg)
 	if err != nil {
 		i.deps.Metrics.FailedRequestCounter.Inc()
 		log.WithError(err).Error("productUpdate: Producer: SendMessage: internal error")
@@ -237,11 +245,14 @@ func (i *implementation) ProductDelete(ctx context.Context, in *pbApi.ProductDel
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	i.deps.Metrics.OutgoingRequestCounter.Inc()
-	_, _, err = i.deps.Producer.SendMessage(&sarama.ProducerMessage{
+	msg := sarama.ProducerMessage{
 		Topic: "productDelete",
 		Value: sarama.ByteEncoder(requestData),
-	})
+	}
+	otelsarama.NewProducerMessageCarrier(&msg)
+
+	i.deps.Metrics.OutgoingRequestCounter.Inc()
+	_, _, err = i.deps.Producer.SendMessage(&msg)
 	if err != nil {
 		i.deps.Metrics.FailedRequestCounter.Inc()
 		log.WithError(err).Error("ProductDelete: Producer: SendMessage: internal error")

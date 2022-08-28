@@ -6,6 +6,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
 	"google.golang.org/grpc"
 	"homework-1/config"
 	"homework-1/internal/api/kafkaStorage"
@@ -25,7 +26,7 @@ import (
 func main() {
 	SetUpLogger()
 
-	err := opentelemetry.SetGlobalTracer("storage", "http://localhost:14268/api/traces")
+	err := opentelemetry.SetGlobalTracer("kafka-storage", "http://localhost:14268/api/traces")
 	if err != nil {
 		log.Fatalf("failed to create tracer: %v", err)
 	}
@@ -117,9 +118,11 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 		consumer := &consumers.ProductCreateConsumer{
 			ProductRepository: productRepository,
 		}
+		handler := otelsarama.WrapConsumerGroupHandler(consumer)
+
 		log.Info("starting productCreateConsumer")
 		for {
-			if err := client.Consume(ctx, []string{"productCreate"}, consumer); err != nil {
+			if err := client.Consume(ctx, []string{"productCreate"}, handler); err != nil {
 				log.WithError(err).Error("on consume productCreate")
 				time.Sleep(time.Second * 3)
 			}
@@ -136,9 +139,11 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 		consumer := &consumers.ProductUpdateConsumer{
 			ProductRepository: productRepository,
 		}
+		handler := otelsarama.WrapConsumerGroupHandler(consumer)
+
 		log.Info("starting productUpdateConsumer")
 		for {
-			if err = client.Consume(ctx, []string{"productUpdate"}, consumer); err != nil {
+			if err = client.Consume(ctx, []string{"productUpdate"}, handler); err != nil {
 				log.WithError(err).Error("on consume productUpdate")
 				time.Sleep(time.Second * 3)
 			}
@@ -155,9 +160,12 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 		consumer := &consumers.ProductDeleteConsumer{
 			ProductRepository: productRepository,
 		}
+
+		handler := otelsarama.WrapConsumerGroupHandler(consumer)
+
 		log.Info("starting productDeleteConsumer")
 		for {
-			if err = client.Consume(ctx, []string{"productDelete"}, consumer); err != nil {
+			if err = client.Consume(ctx, []string{"productDelete"}, handler); err != nil {
 				log.WithError(err).Error("on consume productDelete")
 				time.Sleep(time.Second * 3)
 			}
