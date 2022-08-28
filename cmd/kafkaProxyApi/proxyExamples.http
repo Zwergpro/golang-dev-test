@@ -1,0 +1,48 @@
+### metrics
+GET http://localhost:9081/debug/vars
+
+
+### ProductList
+GRPC localhost:8081/api.v1.ApiService/ProductList
+
+#{
+#  "page": 1,
+#  "size": 3
+#}
+
+
+### ProductGet
+GRPC localhost:8081/api.v1.ApiService/ProductGet
+
+{
+  "id": 1
+}
+
+
+### ProductCreate
+GRPC localhost:8081/api.v1.ApiService/ProductCreate
+
+{
+  "name": "product 1",
+  "price": 3,
+  "quantity": 10
+}
+
+
+### ProductUpdate
+GRPC localhost:8081/api.v1.ApiService/ProductUpdate
+
+{
+  "id": "1",
+  "name": "newPillow",
+  "price": "300",
+  "quantity": "20"
+}
+
+
+### ProductDelete
+GRPC localhost:8081/api.v1.ApiService/ProductDelete
+
+{
+  "id": 1
+}
