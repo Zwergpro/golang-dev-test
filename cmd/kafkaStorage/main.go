@@ -13,7 +13,7 @@ import (
 	"homework-1/internal/opentelemetry"
 	"homework-1/internal/repository"
 	postgresRepository "homework-1/internal/repository/postgres"
-	pbStorage "homework-1/pkg/api/storage/v1"
+	pbStorage "homework-1/pkg/api/storage/v2"
 	"net"
 	"net/http"
 	"os"

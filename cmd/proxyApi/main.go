@@ -18,9 +18,9 @@ import (
 func main() {
 	SetUpLogger()
 
-	err := opentelemetry.SetGlobalTracer("proxy-apy", "http://localhost:14268/api/traces")
+	err := opentelemetry.SetGlobalTracer("proxy-apy", config.TracerUrl)
 	if err != nil {
-		log.Fatalf("failed to create tracer: %v", err)
+		log.WithError(err).Fatal("failed to create tracer")
 	}
 
 	grpcServer := grpc.NewServer(
@@ -35,7 +35,7 @@ func main() {
 		grpc.WithStreamInterceptor(opentelemetry.StreamClientInterceptor()),
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(err).Fatal("failed to connect to storage service")
 	}
 
 	client := pbStorage.NewStorageServiceClient(conn)
@@ -46,7 +46,7 @@ func main() {
 	go func() {
 		log.Infof("starting metrics http server on %s", config.ProxyApiStatAddress)
 		if err = http.ListenAndServe(config.ProxyApiStatAddress, nil); err != nil {
-			log.Fatal(err)
+			log.WithError(err).Fatal("failed to start metrics http server")
 		}
 	}()
 
@@ -58,11 +58,11 @@ func main() {
 
 	listener, err := net.Listen("tcp", config.ProxyApiServiceAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(err).Fatal("failed to listen proxy api service")
 	}
 	log.Infof("starting grpc server on %s", config.ProxyApiServiceAddress)
 	if err = grpcServer.Serve(listener); err != nil {
-		log.Fatal(err)
+		log.WithError(err).Fatal("failed to start grpc server")
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 	"homework-1/internal/metrics"
 	"homework-1/internal/repository"
-	pb "homework-1/pkg/api/storage/v1"
+	pb "homework-1/pkg/api/storage/v2"
 	"time"
 )
 

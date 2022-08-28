@@ -323,7 +323,7 @@ func (x *Http) GetFullyDecodeReservedExpansion() bool {
 // ## Using gRPC API Service Configuration
 //
 // gRPC API Service Configuration (service config) is a configuration language
-// for configuring a gRPC service to become a user-facing products. The
+// for configuring a gRPC service to become a user-facing product. The
 // service config is simply the YAML representation of the `google.api.Service`
 // proto message.
 //

@@ -21,9 +21,9 @@ import (
 func main() {
 	SetUpLogger()
 
-	err := opentelemetry.SetGlobalTracer("storage", "http://localhost:14268/api/traces")
+	err := opentelemetry.SetGlobalTracer("storage", config.TracerUrl)
 	if err != nil {
-		log.Fatalf("failed to create tracer: %v", err)
+		log.WithError(err).Fatal("failed to create tracer")
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -40,12 +40,12 @@ func main() {
 
 	pool, err := pgxpool.Connect(ctx, psqlConn)
 	if err != nil {
-		log.Fatal("can't connect to database", err)
+		log.WithError(err).Fatal("failed to connect to postgres")
 	}
 	defer pool.Close()
 
 	if err = pool.Ping(ctx); err != nil {
-		log.Fatal("ping database error", err)
+		log.WithError(err).Fatal("failed to ping postgres")
 	}
 
 	poolConfig := pool.Config()
@@ -65,7 +65,7 @@ func main() {
 	go func() {
 		log.Infof("starting metrics http server on %s", config.StorageStatAddress)
 		if err = http.ListenAndServe(config.StorageStatAddress, nil); err != nil {
-			log.Fatal(err)
+			log.WithError(err).Error("failed to start metrics http server")
 		}
 	}()
 
@@ -78,11 +78,11 @@ func main() {
 
 	listener, err := net.Listen("tcp", config.StorageServiceAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(err).Fatal("failed to listen")
 	}
 	log.Infof("starting grpc server on %s", config.StorageServiceAddress)
 	if err = grpcServer.Serve(listener); err != nil {
-		log.Fatal(err)
+		log.WithError(err).Error("failed to start grpc server")
 	}
 }
 

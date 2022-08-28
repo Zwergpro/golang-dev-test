@@ -3,7 +3,7 @@ GET http://localhost:9081/debug/vars
 
 
 ### ProductList
-GRPC localhost:8081/api.v1.ApiService/ProductList
+GRPC localhost:8081/api.v2.ApiService/ProductList
 
 #{
 #  "page": 1,
@@ -12,15 +12,15 @@ GRPC localhost:8081/api.v1.ApiService/ProductList
 
 
 ### ProductGet
-GRPC localhost:8081/api.v1.ApiService/ProductGet
+GRPC localhost:8081/api.v2.ApiService/ProductGet
 
 {
-  "id": 133
+  "id": 132
 }
 
 
 ### ProductCreate
-GRPC localhost:8081/api.v1.ApiService/ProductCreate
+GRPC localhost:8081/api.v2.ApiService/ProductCreate
 
 {
   "name": "product 6",
@@ -30,10 +30,10 @@ GRPC localhost:8081/api.v1.ApiService/ProductCreate
 
 
 ### ProductUpdate
-GRPC localhost:8081/api.v1.ApiService/ProductUpdate
+GRPC localhost:8081/api.v2.ApiService/ProductUpdate
 
 {
-  "id": 139,
+  "id": 140,
   "name": "product 32 updated",
   "price": 300,
   "quantity": 200
@@ -41,8 +41,8 @@ GRPC localhost:8081/api.v1.ApiService/ProductUpdate
 
 
 ### ProductDelete
-GRPC localhost:8081/api.v1.ApiService/ProductDelete
+GRPC localhost:8081/api.v2.ApiService/ProductDelete
 
 {
-  "id": 139
+  "id": 140
 }

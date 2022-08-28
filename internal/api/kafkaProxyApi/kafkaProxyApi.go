@@ -12,8 +12,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"homework-1/internal/metrics"
 	"homework-1/internal/models/products"
-	pbStorage "homework-1/pkg/api/storage/v1"
-	pbApi "homework-1/pkg/api/v1"
+	pbStorage "homework-1/pkg/api/storage/v2"
+	pbApi "homework-1/pkg/api/v2"
 	"io"
 	"strings"
 	"time"
@@ -168,12 +168,7 @@ func (i *implementation) ProductCreate(ctx context.Context, in *pbApi.ProductCre
 	}
 
 	i.deps.Metrics.SuccessfulRequestCounter.Inc()
-	return &pbApi.ProductCreateResponse{
-		Id:       1,
-		Name:     "test",
-		Price:    1,
-		Quantity: 1,
-	}, nil
+	return &pbApi.ProductCreateResponse{}, nil
 }
 
 func (i *implementation) ProductUpdate(ctx context.Context, in *pbApi.ProductUpdateRequest) (*pbApi.ProductUpdateResponse, error) {
@@ -224,12 +219,7 @@ func (i *implementation) ProductUpdate(ctx context.Context, in *pbApi.ProductUpd
 	}
 
 	i.deps.Metrics.SuccessfulRequestCounter.Inc()
-	return &pbApi.ProductUpdateResponse{
-		Id:       1,
-		Name:     "test",
-		Price:    1,
-		Quantity: 1,
-	}, nil
+	return &pbApi.ProductUpdateResponse{}, nil
 }
 
 func (i *implementation) ProductDelete(ctx context.Context, in *pbApi.ProductDeleteRequest) (*pbApi.ProductDeleteResponse, error) {
