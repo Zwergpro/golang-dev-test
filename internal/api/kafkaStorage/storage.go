@@ -1,4 +1,4 @@
-package storage
+package kafkaStorage
 
 import (
 	"context"
@@ -102,27 +102,6 @@ func (i *implementation) ProductUpdate(_ context.Context, _ *pb.ProductUpdateReq
 	return nil, status.Error(codes.Unavailable, "Unavailable")
 }
 
-func (i *implementation) ProductDelete(ctx context.Context, in *pb.ProductDeleteRequest) (*pb.ProductDeleteResponse, error) {
-	i.deps.Metrics.IncomingRequestCounter.Inc()
-
-	md, _ := metadata.FromIncomingContext(ctx)
-	log.Infof("ProductDelete request metadata: %v", md)
-	log.Debugf("ProductDelete request data: %v", in)
-
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
-	defer cancel()
-
-	if err := i.deps.ProductRepository.DeleteProduct(ctx, in.GetId()); err != nil {
-		i.deps.Metrics.FailedRequestCounter.Inc()
-		if errors.Is(err, repository.ProductNotExists) {
-			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.WithError(err).Error("ProductRepository: ProductDelete: internal error")
-		return nil, status.Error(codes.Internal, "internal error")
-	}
-
-	i.deps.Metrics.SuccessfulRequestCounter.Inc()
-	return &pb.ProductDeleteResponse{}, nil
+func (i *implementation) ProductDelete(_ context.Context, _ *pb.ProductDeleteRequest) (*pb.ProductDeleteResponse, error) {
+	return nil, status.Error(codes.Unavailable, "Unavailable")
 }

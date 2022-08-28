@@ -188,31 +188,35 @@ func (i *implementation) ProductUpdate(ctx context.Context, in *pbApi.ProductUpd
 		return nil, status.Error(codes.InvalidArgument, strings.Join(errStrings, "; "))
 	}
 
-	request := pbStorage.ProductUpdateRequest{
+	requestData, err := proto.Marshal(&pbStorage.ProductUpdateRequest{
 		Id:       in.GetId(),
 		Name:     in.GetName(),
 		Price:    in.GetPrice(),
 		Quantity: in.GetQuantity(),
+	})
+	if err != nil {
+		i.deps.Metrics.FailedRequestCounter.Inc()
+		log.WithError(err).Error("ProductUpdate: proto.Marshal: internal error")
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
-	product, err := i.deps.StorageClient.ProductUpdate(ctx, &request)
+	_, _, err = i.deps.Producer.SendMessage(&sarama.ProducerMessage{
+		Topic: "productUpdate",
+		Value: sarama.ByteEncoder(requestData),
+	})
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
-			return nil, status.Error(codes.NotFound, "product not found")
-		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.WithError(err).Error("StorageClient: ProductUpdate: internal error")
+		log.WithError(err).Error("productUpdate: Producer: SendMessage: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	i.deps.Metrics.SuccessfulRequestCounter.Inc()
 	return &pbApi.ProductUpdateResponse{
-		Id:       product.GetId(),
-		Name:     product.GetName(),
-		Price:    product.GetPrice(),
-		Quantity: product.GetQuantity(),
+		Id:       1,
+		Name:     "test",
+		Price:    1,
+		Quantity: 1,
 	}, nil
 }
 
@@ -226,15 +230,21 @@ func (i *implementation) ProductDelete(ctx context.Context, in *pbApi.ProductDel
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	i.deps.Metrics.OutgoingRequestCounter.Inc()
-	_, err := i.deps.StorageClient.ProductDelete(ctx, &pbStorage.ProductDeleteRequest{Id: in.GetId()})
+	requestData, err := proto.Marshal(&pbStorage.ProductDeleteRequest{Id: in.GetId()})
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
-			return nil, status.Error(codes.NotFound, "product not found")
-		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.WithError(err).Error("StorageClient: ProductDelete: internal error")
+		log.WithError(err).Error("ProductDelete: proto.Marshal: internal error")
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	i.deps.Metrics.OutgoingRequestCounter.Inc()
+	_, _, err = i.deps.Producer.SendMessage(&sarama.ProducerMessage{
+		Topic: "productDelete",
+		Value: sarama.ByteEncoder(requestData),
+	})
+	if err != nil {
+		i.deps.Metrics.FailedRequestCounter.Inc()
+		log.WithError(err).Error("ProductDelete: Producer: SendMessage: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 

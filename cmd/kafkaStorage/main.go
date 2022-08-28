@@ -8,8 +8,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"homework-1/config"
+	"homework-1/internal/api/kafkaStorage"
 	"homework-1/internal/api/kafkaStorage/consumers"
-	"homework-1/internal/api/storage"
 	"homework-1/internal/metrics"
 	"homework-1/internal/opentelemetry"
 	"homework-1/internal/repository"
@@ -75,12 +75,12 @@ func main() {
 
 	runStorageKafkaConsumers(postgresRepository.NewRepository(pool))
 
-	deps := storage.Deps{
+	deps := kafkaStorage.Deps{
 		ProductRepository: postgresRepository.NewRepository(pool),
 		Metrics:           appMetrics,
 	}
 
-	pbStorage.RegisterStorageServiceServer(grpcServer, storage.New(deps))
+	pbStorage.RegisterStorageServiceServer(grpcServer, kafkaStorage.New(deps))
 
 	listener, err := net.Listen("tcp", config.StorageServiceAddress)
 	if err != nil {
@@ -117,6 +117,7 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 		consumer := &consumers.ProductCreateConsumer{
 			ProductRepository: productRepository,
 		}
+		log.Info("starting productCreateConsumer")
 		for {
 			if err := client.Consume(ctx, []string{"productCreate"}, consumer); err != nil {
 				log.WithError(err).Error("on consume productCreate")
@@ -135,6 +136,7 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 		consumer := &consumers.ProductUpdateConsumer{
 			ProductRepository: productRepository,
 		}
+		log.Info("starting productUpdateConsumer")
 		for {
 			if err = client.Consume(ctx, []string{"productUpdate"}, consumer); err != nil {
 				log.WithError(err).Error("on consume productUpdate")
@@ -153,6 +155,7 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 		consumer := &consumers.ProductDeleteConsumer{
 			ProductRepository: productRepository,
 		}
+		log.Info("starting productDeleteConsumer")
 		for {
 			if err = client.Consume(ctx, []string{"productDelete"}, consumer); err != nil {
 				log.WithError(err).Error("on consume productDelete")
