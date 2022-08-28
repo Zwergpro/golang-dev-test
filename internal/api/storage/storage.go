@@ -71,6 +71,7 @@ func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest)
 	p, err := i.deps.ProductRepository.GetProductById(ctx, in.GetId())
 	if err != nil {
 		if errors.Is(err, repository.ProductNotExists) {
+			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
@@ -103,6 +104,7 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 	product, err := i.deps.ProductRepository.CreateProduct(ctx, p)
 	if err != nil {
 		if errors.Is(err, repository.ProductAlreadyExists) {
+			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
@@ -129,6 +131,7 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 	product, err := i.deps.ProductRepository.GetProductById(ctx, in.GetId())
 	if err != nil {
 		if errors.Is(err, repository.ProductNotExists) {
+			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
@@ -142,6 +145,7 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 
 	if product, err = i.deps.ProductRepository.UpdateProduct(ctx, *product); err != nil {
 		if errors.Is(err, repository.ProductNotExists) {
+			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
@@ -168,6 +172,7 @@ func (i *implementation) ProductDelete(_ context.Context, in *pb.ProductDeleteRe
 	if err := i.deps.ProductRepository.DeleteProduct(ctx, in.GetId()); err != nil {
 		i.deps.Metrics.FailedRequestCounter.Inc()
 		if errors.Is(err, repository.ProductNotExists) {
+			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()

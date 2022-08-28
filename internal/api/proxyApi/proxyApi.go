@@ -93,6 +93,7 @@ func (i *implementation) ProductGet(_ context.Context, in *pbApi.ProductGetReque
 	product, err := i.deps.StorageClient.ProductGet(ctx, &pbStorage.ProductGetRequest{Id: in.GetId()})
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
+			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 			return nil, status.Error(codes.NotFound, "product not found")
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
@@ -121,6 +122,7 @@ func (i *implementation) ProductCreate(_ context.Context, in *pbApi.ProductCreat
 		for _, err := range errs {
 			errStrings = append(errStrings, err.Error())
 		}
+		i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 		return nil, status.Error(codes.InvalidArgument, strings.Join(errStrings, "; "))
 	}
 
@@ -159,6 +161,7 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pbApi.ProductUpdat
 		for _, err := range errs {
 			errStrings = append(errStrings, err.Error())
 		}
+		i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 		return nil, status.Error(codes.InvalidArgument, strings.Join(errStrings, "; "))
 	}
 
@@ -173,6 +176,7 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pbApi.ProductUpdat
 	product, err := i.deps.StorageClient.ProductUpdate(ctx, &request)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
+			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 			return nil, status.Error(codes.NotFound, "product not found")
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
@@ -200,6 +204,7 @@ func (i *implementation) ProductDelete(_ context.Context, in *pbApi.ProductDelet
 	_, err := i.deps.StorageClient.ProductDelete(ctx, &pbStorage.ProductDeleteRequest{Id: in.GetId()})
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
+			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
 			return nil, status.Error(codes.NotFound, "product not found")
 		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
