@@ -5,6 +5,7 @@ import (
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
+	"go.opentelemetry.io/otel/propagation"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -48,7 +49,7 @@ func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListR
 	log.Infof("ProductList request metadata: %v", md)
 	log.Debugf("ProductList request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	pageNum := in.GetPage()
@@ -95,7 +96,7 @@ func (i *implementation) ProductGet(ctx context.Context, in *pbApi.ProductGetReq
 	log.Infof("ProductGet request metadata: %v", md)
 	log.Debugf("ProductGet request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
@@ -126,7 +127,7 @@ func (i *implementation) ProductCreate(ctx context.Context, in *pbApi.ProductCre
 	log.Infof("ProductCreate request metadata: %v", md)
 	log.Debugf("ProductCreate request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	if errs := products.ValidateProductFields(in.GetName(), in.GetPrice(), in.GetQuantity()); len(errs) > 0 {
@@ -156,7 +157,8 @@ func (i *implementation) ProductCreate(ctx context.Context, in *pbApi.ProductCre
 		Value: sarama.ByteEncoder(requestData),
 	}
 
-	otelsarama.NewProducerMessageCarrier(&msg)
+	propagator := propagation.TraceContext{}
+	propagator.Inject(ctx, otelsarama.NewProducerMessageCarrier(&msg))
 
 	_, _, err = i.deps.Producer.SendMessage(&msg)
 	if err != nil {
@@ -181,7 +183,7 @@ func (i *implementation) ProductUpdate(ctx context.Context, in *pbApi.ProductUpd
 	log.Infof("ProductUpdate request metadata: %v", md)
 	log.Debugf("ProductUpdate request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	if errs := products.ValidateProductFields(in.GetName(), in.GetPrice(), in.GetQuantity()); len(errs) > 0 {
@@ -209,7 +211,9 @@ func (i *implementation) ProductUpdate(ctx context.Context, in *pbApi.ProductUpd
 		Topic: "productUpdate",
 		Value: sarama.ByteEncoder(requestData),
 	}
-	otelsarama.NewProducerMessageCarrier(&msg)
+
+	propagator := propagation.TraceContext{}
+	propagator.Inject(ctx, otelsarama.NewProducerMessageCarrier(&msg))
 
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
 	_, _, err = i.deps.Producer.SendMessage(&msg)
@@ -235,7 +239,7 @@ func (i *implementation) ProductDelete(ctx context.Context, in *pbApi.ProductDel
 	log.Infof("ProductDelete request metadata: %v", md)
 	log.Debugf("ProductDelete request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	requestData, err := proto.Marshal(&pbStorage.ProductDeleteRequest{Id: in.GetId()})
@@ -249,7 +253,9 @@ func (i *implementation) ProductDelete(ctx context.Context, in *pbApi.ProductDel
 		Topic: "productDelete",
 		Value: sarama.ByteEncoder(requestData),
 	}
-	otelsarama.NewProducerMessageCarrier(&msg)
+
+	propagator := propagation.TraceContext{}
+	propagator.Inject(ctx, otelsarama.NewProducerMessageCarrier(&msg))
 
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
 	_, _, err = i.deps.Producer.SendMessage(&msg)
