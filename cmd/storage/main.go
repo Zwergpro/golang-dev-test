@@ -9,6 +9,7 @@ import (
 	"homework-1/config"
 	"homework-1/internal/api/storage"
 	"homework-1/internal/metrics"
+	"homework-1/internal/opentelemetry"
 	postgresRepository "homework-1/internal/repository/postgres"
 	pbStorage "homework-1/pkg/api/storage/v1"
 	"net"
@@ -19,6 +20,11 @@ import (
 // сервис для работы с базами данных
 func main() {
 	SetUpLogger()
+
+	err := opentelemetry.SetGlobalTracer("storage", "http://localhost:14268/api/traces")
+	if err != nil {
+		log.Fatalf("failed to create tracer: %v", err)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -48,7 +54,10 @@ func main() {
 	poolConfig.MinConns = config.DBMinConns
 	poolConfig.MaxConns = config.DBMaxConns
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(opentelemetry.UnaryServerInterceptor()),
+		grpc.StreamInterceptor(opentelemetry.StreamServerInterceptor()),
+	)
 
 	appMetrics := metrics.NewMetrics()
 	appMetrics.Publish()

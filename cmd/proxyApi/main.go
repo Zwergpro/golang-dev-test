@@ -7,6 +7,7 @@ import (
 	"homework-1/config"
 	"homework-1/internal/api/proxyApi"
 	"homework-1/internal/metrics"
+	"homework-1/internal/opentelemetry"
 	pbStorage "homework-1/pkg/api/storage/v1"
 	pbApi "homework-1/pkg/api/v1"
 	"net"
@@ -17,9 +18,22 @@ import (
 func main() {
 	SetUpLogger()
 
-	grpcServer := grpc.NewServer()
+	err := opentelemetry.SetGlobalTracer("proxy-apy", "http://localhost:14268/api/traces")
+	if err != nil {
+		log.Fatalf("failed to create tracer: %v", err)
+	}
 
-	conn, err := grpc.Dial(config.StorageServiceAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(opentelemetry.UnaryServerInterceptor()),
+		grpc.StreamInterceptor(opentelemetry.StreamServerInterceptor()),
+	)
+
+	conn, err := grpc.Dial(
+		config.StorageServiceAddress,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(opentelemetry.UnaryClientInterceptor()),
+		grpc.WithStreamInterceptor(opentelemetry.StreamClientInterceptor()),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
