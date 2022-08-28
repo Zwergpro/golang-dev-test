@@ -3,11 +3,11 @@ GET http://localhost:9080/debug/vars
 
 
 ### ProductList
-GRPC localhost:8080/api.storage.v1.StorageService/ProductList
+GRPC localhost:8080/api.storage.v2.StorageService/ProductList
 
 
 ### ProductGet
-GRPC localhost:8080/api.storage.v1.StorageService/ProductGet
+GRPC localhost:8080/api.storage.v2.StorageService/ProductGet
 
 {
   "id": 1
@@ -15,7 +15,7 @@ GRPC localhost:8080/api.storage.v1.StorageService/ProductGet
 
 
 ### ProductCreate
-GRPC localhost:8080/api.storage.v1.StorageService/ProductCreate
+GRPC localhost:8080/api.storage.v2.StorageService/ProductCreate
 
 {
   "name": "NewProduct2",
@@ -25,7 +25,7 @@ GRPC localhost:8080/api.storage.v1.StorageService/ProductCreate
 
 
 ### ProductUpdate
-GRPC localhost:8080/api.storage.v1.StorageService/ProductUpdate
+GRPC localhost:8080/api.storage.v2.StorageService/ProductUpdate
 
 {
   "id": "1",
@@ -36,7 +36,7 @@ GRPC localhost:8080/api.storage.v1.StorageService/ProductUpdate
 
 
 ### ProductDelete
-GRPC localhost:8080/api.storage.v1.StorageService/ProductDelete
+GRPC localhost:8080/api.storage.v2.StorageService/ProductDelete
 
 {
   "id": 1
