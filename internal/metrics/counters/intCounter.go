@@ -17,6 +17,6 @@ func (c *IntCounter) String() string {
 	return strconv.FormatUint(c.cnt, 10)
 }
 
-func NewIntCounter() *IntCounter {
+func NewIntCounter() Counter {
 	return &IntCounter{}
 }
