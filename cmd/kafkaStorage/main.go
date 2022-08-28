@@ -107,12 +107,12 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 	saramaConfig := sarama.NewConfig()
 	saramaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
 
-	client, err := sarama.NewConsumerGroup(brokers, "productCreateConsuming", saramaConfig)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-
 	go func() {
+		client, err := sarama.NewConsumerGroup(brokers, "productCreateConsuming", saramaConfig)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+
 		ctx := context.Background()
 		consumer := &consumers.ProductCreateConsumer{
 			ProductRepository: productRepository,
@@ -126,6 +126,11 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 	}()
 
 	go func() {
+		client, err := sarama.NewConsumerGroup(brokers, "productUpdateConsuming", saramaConfig)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+
 		ctx := context.Background()
 		consumer := &consumers.ProductUpdateConsumer{
 			ProductRepository: productRepository,
@@ -133,6 +138,24 @@ func runStorageKafkaConsumers(productRepository repository.Product) {
 		for {
 			if err = client.Consume(ctx, []string{"productUpdate"}, consumer); err != nil {
 				log.WithError(err).Error("on consume productUpdate")
+				time.Sleep(time.Second * 3)
+			}
+		}
+	}()
+
+	go func() {
+		client, err := sarama.NewConsumerGroup(brokers, "productDeleteConsuming", saramaConfig)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+
+		ctx := context.Background()
+		consumer := &consumers.ProductDeleteConsumer{
+			ProductRepository: productRepository,
+		}
+		for {
+			if err = client.Consume(ctx, []string{"productDelete"}, consumer); err != nil {
+				log.WithError(err).Error("on consume productDelete")
 				time.Sleep(time.Second * 3)
 			}
 		}

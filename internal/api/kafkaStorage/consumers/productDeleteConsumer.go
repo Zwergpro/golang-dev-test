@@ -5,25 +5,24 @@ import (
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
-	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/storage/v1"
 	"time"
 )
 
-type ProductCreateConsumer struct {
+type ProductDeleteConsumer struct {
 	ProductRepository repository.Product
 }
 
-func (c *ProductCreateConsumer) Setup(_ sarama.ConsumerGroupSession) error {
+func (c *ProductDeleteConsumer) Setup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (c *ProductCreateConsumer) Cleanup(_ sarama.ConsumerGroupSession) error {
+func (c *ProductDeleteConsumer) Cleanup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (c *ProductCreateConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (c *ProductDeleteConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for {
 		select {
 		case <-session.Context().Done():
@@ -35,7 +34,7 @@ func (c *ProductCreateConsumer) ConsumeClaim(session sarama.ConsumerGroupSession
 				return nil
 			}
 
-			in := pb.ProductCreateRequest{}
+			in := pb.ProductDeleteRequest{}
 			if err := proto.Unmarshal(msg.Value, &in); err != nil {
 				log.WithError(err).Error("Failed to unmarshal message")
 				continue
@@ -44,17 +43,11 @@ func (c *ProductCreateConsumer) ConsumeClaim(session sarama.ConsumerGroupSession
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 			defer cancel()
 
-			p := products.Product{
-				Name:     in.GetName(),
-				Price:    in.GetPrice(),
-				Quantity: in.GetQuantity(),
-			}
-
-			product, err := c.ProductRepository.CreateProduct(ctx, p)
+			err := c.ProductRepository.DeleteProduct(ctx, in.GetId())
 			if err != nil {
-				log.WithError(err).Error("ProductRepository: ProductCreate: internal error")
+				log.WithError(err).Error("ProductRepository: DeleteProduct: internal error")
 			} else {
-				log.Infof("Product created: %v", product)
+				log.Infof("Product deleted: %d", in.GetId())
 			}
 			session.MarkMessage(msg, "")
 		}
