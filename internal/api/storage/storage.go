@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"homework-1/internal/metrics"
 	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/storage/v1"
@@ -27,9 +28,11 @@ type implementation struct {
 
 type Deps struct {
 	ProductRepository repository.Product
+	Metrics           *metrics.Metrics
 }
 
 func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageService_ProductListServer) error {
+	i.deps.Metrics.IncomingRequestCounter.Inc()
 	log.Printf("[INFO] ProductList: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
@@ -38,6 +41,7 @@ func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageSe
 	allProducts, err := i.deps.ProductRepository.GetAllProducts(ctx, in.GetPage(), in.GetSize())
 	if err != nil {
 		log.Printf("[ERROR] ProductList: %v\n", err)
+		i.deps.Metrics.FailedRequestCounter.Inc()
 		return status.Error(codes.Internal, "internal error")
 	}
 
@@ -53,10 +57,12 @@ func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageSe
 		}
 	}
 
+	i.deps.Metrics.SuccessfulRequestCounter.Inc()
 	return nil
 }
 
 func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest) (*pb.ProductGetResponse, error) {
+	i.deps.Metrics.IncomingRequestCounter.Inc()
 	log.Printf("[INFO] ProductGet: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
@@ -67,9 +73,12 @@ func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest)
 		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
+		i.deps.Metrics.FailedRequestCounter.Inc()
 		log.Printf("[ERROR] ProductGet: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
+
+	i.deps.Metrics.SuccessfulRequestCounter.Inc()
 	return &pb.ProductGetResponse{
 		Id:       p.GetId(),
 		Name:     p.GetName(),
@@ -79,6 +88,7 @@ func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest)
 }
 
 func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRequest) (*pb.ProductCreateResponse, error) {
+	i.deps.Metrics.IncomingRequestCounter.Inc()
 	log.Printf("[INFO] ProductCreate: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
@@ -95,10 +105,12 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 		if errors.Is(err, repository.ProductAlreadyExists) {
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}
+		i.deps.Metrics.FailedRequestCounter.Inc()
 		log.Printf("[ERROR] ProductCreate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
+	i.deps.Metrics.SuccessfulRequestCounter.Inc()
 	return &pb.ProductCreateResponse{
 		Id:       product.GetId(),
 		Name:     product.GetName(),
@@ -108,6 +120,7 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 }
 
 func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRequest) (*pb.ProductUpdateResponse, error) {
+	i.deps.Metrics.IncomingRequestCounter.Inc()
 	log.Printf("[INFO] ProductUpdate: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
@@ -118,6 +131,7 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
+		i.deps.Metrics.FailedRequestCounter.Inc()
 		log.Printf("[ERROR] ProductUpdate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
@@ -130,10 +144,12 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
+		i.deps.Metrics.FailedRequestCounter.Inc()
 		log.Printf("[ERROR] ProductUpdate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
+	i.deps.Metrics.SuccessfulRequestCounter.Inc()
 	return &pb.ProductUpdateResponse{
 		Id:       product.GetId(),
 		Name:     product.GetName(),
@@ -143,17 +159,22 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 }
 
 func (i *implementation) ProductDelete(_ context.Context, in *pb.ProductDeleteRequest) (*pb.ProductDeleteResponse, error) {
+	i.deps.Metrics.IncomingRequestCounter.Inc()
 	log.Printf("[INFO] ProductDelete: %v", in)
 
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
 	if err := i.deps.ProductRepository.DeleteProduct(ctx, in.GetId()); err != nil {
+		i.deps.Metrics.FailedRequestCounter.Inc()
 		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
+		i.deps.Metrics.FailedRequestCounter.Inc()
 		log.Printf("[ERROR] ProductDelete: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
+
+	i.deps.Metrics.SuccessfulRequestCounter.Inc()
 	return &pb.ProductDeleteResponse{}, nil
 }

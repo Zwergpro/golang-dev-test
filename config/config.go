@@ -17,6 +17,8 @@ const (
 
 const (
 	StorageServiceAddress     = ":8080"
+	StorageStatAddress        = ":9080"
 	ProxyApiServiceAddress    = ":8081"
+	ProxyApiStatAddress       = ":9081"
 	HTTPGatewayServiceAddress = ":8082"
 )

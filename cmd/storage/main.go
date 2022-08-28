@@ -7,10 +7,12 @@ import (
 	"google.golang.org/grpc"
 	"homework-1/config"
 	"homework-1/internal/api/storage"
+	"homework-1/internal/metrics"
 	postgresRepository "homework-1/internal/repository/postgres"
 	pbStorage "homework-1/pkg/api/storage/v1"
 	"log"
 	"net"
+	"net/http"
 )
 
 // сервис для работы с базами данных
@@ -45,8 +47,19 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
+	appMetrics := metrics.NewMetrics()
+	appMetrics.Publish()
+
+	go func() {
+		log.Printf("[INFO] starting metrics http server on %s", config.StorageStatAddress)
+		if err = http.ListenAndServe(config.StorageStatAddress, nil); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	deps := storage.Deps{
 		ProductRepository: postgresRepository.NewRepository(pool),
+		Metrics:           appMetrics,
 	}
 
 	pbStorage.RegisterStorageServiceServer(grpcServer, storage.New(deps))
@@ -55,6 +68,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("[INFO] starting grpc server on %s", config.StorageServiceAddress)
 	if err = grpcServer.Serve(listener); err != nil {
 		log.Fatal(err)
 	}
