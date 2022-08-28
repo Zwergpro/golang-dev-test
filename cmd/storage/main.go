@@ -13,13 +13,12 @@ import (
 	pbStorage "homework-1/pkg/api/storage/v1"
 	"net"
 	"net/http"
+	"os"
 )
 
 // сервис для работы с базами данных
 func main() {
-	log.SetFormatter(&log.TextFormatter{
-		FullTimestamp: true,
-	})
+	SetUpLogger()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -75,5 +74,15 @@ func main() {
 	log.Infof("starting grpc server on %s", config.StorageServiceAddress)
 	if err = grpcServer.Serve(listener); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func SetUpLogger() {
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+
+	if os.Getenv("QA_DEBUG") == "True" {
+		log.SetLevel(log.DebugLevel)
 	}
 }

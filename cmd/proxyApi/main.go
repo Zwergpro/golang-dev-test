@@ -11,12 +11,11 @@ import (
 	pbApi "homework-1/pkg/api/v1"
 	"net"
 	"net/http"
+	"os"
 )
 
 func main() {
-	log.SetFormatter(&log.TextFormatter{
-		FullTimestamp: true,
-	})
+	SetUpLogger()
 
 	grpcServer := grpc.NewServer()
 
@@ -50,5 +49,15 @@ func main() {
 	log.Infof("starting grpc server on %s", config.ProxyApiServiceAddress)
 	if err = grpcServer.Serve(listener); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func SetUpLogger() {
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+
+	if os.Getenv("QA_DEBUG") == "True" {
+		log.SetLevel(log.DebugLevel)
 	}
 }
