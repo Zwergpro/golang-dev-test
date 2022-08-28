@@ -14,7 +14,7 @@ import (
 
 const maxTimeout = time.Millisecond * 27
 
-func New(deps Deps) pb.StorageServiceServer {
+func New(deps Deps) *implementation {
 	return &implementation{
 		deps: deps,
 	}
@@ -64,7 +64,7 @@ func (i *implementation) ProductGet(_ context.Context, in *pb.ProductGetRequest)
 
 	p, err := i.deps.ProductRepository.GetProductById(ctx, in.GetId())
 	if err != nil {
-		if errors.As(err, &repository.ProductNotExists) {
+		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		log.Printf("[ERROR] ProductGet: %v\n", err)
@@ -84,14 +84,15 @@ func (i *implementation) ProductCreate(_ context.Context, in *pb.ProductCreateRe
 	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	p, err := products.BuildProduct(in.GetName(), in.GetPrice(), in.GetQuantity())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+	p := products.Product{
+		Name:     in.GetName(),
+		Price:    in.GetPrice(),
+		Quantity: in.GetQuantity(),
 	}
 
-	product, err := i.deps.ProductRepository.CreateProduct(ctx, *p)
+	product, err := i.deps.ProductRepository.CreateProduct(ctx, p)
 	if err != nil {
-		if errors.As(err, &repository.ProductAlreadyExists) {
+		if errors.Is(err, repository.ProductAlreadyExists) {
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}
 		log.Printf("[ERROR] ProductCreate: %v\n", err)
@@ -114,27 +115,19 @@ func (i *implementation) ProductUpdate(_ context.Context, in *pb.ProductUpdateRe
 
 	product, err := i.deps.ProductRepository.GetProductById(ctx, in.GetId())
 	if err != nil {
-		if errors.As(err, &repository.ProductNotExists) {
+		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		log.Printf("[ERROR] ProductUpdate: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	if err = product.SetName(in.GetName()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	if err = product.SetPrice(in.GetPrice()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	if err = product.SetQuantity(in.GetQuantity()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
+	product.Name = in.GetName()
+	product.Price = in.GetPrice()
+	product.Quantity = in.GetQuantity()
 
 	if product, err = i.deps.ProductRepository.UpdateProduct(ctx, *product); err != nil {
-		if errors.As(err, &repository.ProductNotExists) {
+		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		log.Printf("[ERROR] ProductUpdate: %v\n", err)
@@ -156,7 +149,7 @@ func (i *implementation) ProductDelete(_ context.Context, in *pb.ProductDeleteRe
 	defer cancel()
 
 	if err := i.deps.ProductRepository.DeleteProduct(ctx, in.GetId()); err != nil {
-		if errors.As(err, &repository.ProductNotExists) {
+		if errors.Is(err, repository.ProductNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		log.Printf("[ERROR] ProductDelete: %v\n", err)

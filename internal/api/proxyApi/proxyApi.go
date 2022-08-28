@@ -1,3 +1,5 @@
+//go:generate mockgen -source ./proxyApi.go -destination=./mock/storage.go -package=mock_storage
+
 package proxyApi
 
 import (
@@ -15,7 +17,11 @@ import (
 
 const maxTimeout = time.Millisecond * 30
 
-func New(deps Deps) pbApi.ApiServiceServer {
+type StorageServiceClient interface {
+	pbStorage.StorageServiceClient
+}
+
+func New(deps Deps) *implementation {
 	return &implementation{
 		deps: deps,
 	}
@@ -27,7 +33,7 @@ type implementation struct {
 }
 
 type Deps struct {
-	StorageClient pbStorage.StorageServiceClient
+	StorageClient StorageServiceClient
 }
 
 func (i *implementation) ProductList(_ context.Context, in *pbApi.ProductListRequest) (*pbApi.ProductListResponse, error) {
