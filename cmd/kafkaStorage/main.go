@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v9"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"homework-1/config"
 	"homework-1/internal/api/kafkaStorage"
 	"homework-1/internal/api/kafkaStorage/consumers"
+	redisCache "homework-1/internal/cache/redis"
 	"homework-1/internal/metrics"
 	"homework-1/internal/opentelemetry"
 	"homework-1/internal/repository"
@@ -73,9 +75,12 @@ func main() {
 
 	runStorageKafkaConsumers(postgresRepository.NewRepository(pool), appMetrics)
 
+	cache := redisCache.New(&redis.Options{Addr: "localhost:6379", DB: 0, Password: ""}, appMetrics)
+
 	deps := kafkaStorage.Deps{
 		ProductRepository: postgresRepository.NewRepository(pool),
 		Metrics:           appMetrics,
+		Cache:             cache,
 	}
 
 	pbStorage.RegisterStorageServiceServer(grpcServer, kafkaStorage.New(deps))

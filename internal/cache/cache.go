@@ -1,8 +1,11 @@
 package cache
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type KVCache interface {
-	Get(key string)
-	Set(key string, value string, expiration time.Duration)
+	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key string, value string, expiration time.Duration) error
 }
