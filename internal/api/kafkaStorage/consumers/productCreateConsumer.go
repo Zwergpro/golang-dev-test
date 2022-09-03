@@ -2,11 +2,14 @@ package consumers
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
 	"google.golang.org/protobuf/proto"
 	"homework-1/config"
+	"homework-1/internal/cache"
 	"homework-1/internal/metrics"
 	"homework-1/internal/models/products"
 	"homework-1/internal/repository"
@@ -17,6 +20,7 @@ import (
 type ProductCreateConsumer struct {
 	ProductRepository repository.Product
 	Metrics           *metrics.Metrics
+	Cache             cache.KVCache
 }
 
 func (c *ProductCreateConsumer) Setup(_ sarama.ConsumerGroupSession) error {
@@ -65,6 +69,16 @@ func (c *ProductCreateConsumer) ConsumeClaim(session sarama.ConsumerGroupSession
 			} else {
 				c.Metrics.SuccessfulRequestCounter.Inc()
 				log.Infof("Product created: %v", product)
+			}
+
+			if cacheData, err := json.Marshal(*product); err != nil {
+				log.WithError(err).Error("ProductCreateConsumer: ConsumeClaim: marshal product to cache")
+			} else {
+				key := fmt.Sprintf("product:%d", product.GetId())
+				err = c.Cache.Set(ctx, key, string(cacheData), time.Minute*10)
+				if err != nil {
+					log.WithError(err).Error("ProductCreateConsumer: ConsumeClaim: set product to cache")
+				}
 			}
 		}
 	}

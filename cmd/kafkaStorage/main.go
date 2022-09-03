@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v9"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -73,9 +72,9 @@ func main() {
 		}
 	}()
 
-	runStorageKafkaConsumers(postgresRepository.NewRepository(pool), appMetrics)
+	cache := redisCache.New(config.GetRedisOpts(), appMetrics)
 
-	cache := redisCache.New(&redis.Options{Addr: "localhost:6379", DB: 0, Password: ""}, appMetrics)
+	runStorageKafkaConsumers(postgresRepository.NewRepository(pool), appMetrics, cache)
 
 	deps := kafkaStorage.Deps{
 		ProductRepository: postgresRepository.NewRepository(pool),
@@ -105,22 +104,25 @@ func SetUpLogger() {
 	}
 }
 
-func runStorageKafkaConsumers(productRepository repository.Product, appMetrics *metrics.Metrics) {
+func runStorageKafkaConsumers(productRepository repository.Product, appMetrics *metrics.Metrics, cache *redisCache.Cache) {
 	productCreateConsumer := &consumers.ProductCreateConsumer{
 		ProductRepository: productRepository,
 		Metrics:           appMetrics,
+		Cache:             cache,
 	}
 	go productCreateConsumer.StartConsuming(context.Background())
 
 	productUpdateConsumer := &consumers.ProductUpdateConsumer{
 		ProductRepository: productRepository,
 		Metrics:           appMetrics,
+		Cache:             cache,
 	}
 	go productUpdateConsumer.StartConsuming(context.Background())
 
 	productDeleteConsumer := &consumers.ProductDeleteConsumer{
 		ProductRepository: productRepository,
 		Metrics:           appMetrics,
+		Cache:             cache,
 	}
 	go productDeleteConsumer.StartConsuming(context.Background())
 }
