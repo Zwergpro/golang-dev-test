@@ -1,3 +1,6 @@
+### metrics
+GET http://localhost:9081/debug/vars
+
 
 ### ProductList
 GRPC localhost:8081/api.v1.ApiService/ProductList

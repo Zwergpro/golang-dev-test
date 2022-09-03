@@ -17,6 +17,14 @@ const (
 
 const (
 	StorageServiceAddress     = ":8080"
+	StorageStatAddress        = ":9080"
 	ProxyApiServiceAddress    = ":8081"
+	ProxyApiStatAddress       = ":9081"
 	HTTPGatewayServiceAddress = ":8082"
+
+	TracerUrl = "http://localhost:14268/api/traces"
 )
+
+func GetKafkaBrokers() []string {
+	return []string{"localhost:29091", "localhost:19091", "localhost:39091"}
+}

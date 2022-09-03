@@ -7,11 +7,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"homework-1/config"
-	"homework-1/internal/api/storage"
+	"homework-1/internal/api/kafkaStorage"
+	"homework-1/internal/api/kafkaStorage/consumers"
 	"homework-1/internal/metrics"
 	"homework-1/internal/opentelemetry"
+	"homework-1/internal/repository"
 	postgresRepository "homework-1/internal/repository/postgres"
-	pbStorage "homework-1/pkg/api/storage/v1"
+	pbStorage "homework-1/pkg/api/storage/v2"
 	"net"
 	"net/http"
 	"os"
@@ -21,7 +23,7 @@ import (
 func main() {
 	SetUpLogger()
 
-	err := opentelemetry.SetGlobalTracer("storage", config.TracerUrl)
+	err := opentelemetry.SetGlobalTracer("kafka-storage", config.TracerUrl)
 	if err != nil {
 		log.WithError(err).Fatal("failed to create tracer")
 	}
@@ -65,16 +67,18 @@ func main() {
 	go func() {
 		log.Infof("starting metrics http server on %s", config.StorageStatAddress)
 		if err = http.ListenAndServe(config.StorageStatAddress, nil); err != nil {
-			log.WithError(err).Error("failed to start metrics http server")
+			log.WithError(err).Fatal("failed to start metrics http server")
 		}
 	}()
 
-	deps := storage.Deps{
+	runStorageKafkaConsumers(postgresRepository.NewRepository(pool), appMetrics)
+
+	deps := kafkaStorage.Deps{
 		ProductRepository: postgresRepository.NewRepository(pool),
 		Metrics:           appMetrics,
 	}
 
-	pbStorage.RegisterStorageServiceServer(grpcServer, storage.New(deps))
+	pbStorage.RegisterStorageServiceServer(grpcServer, kafkaStorage.New(deps))
 
 	listener, err := net.Listen("tcp", config.StorageServiceAddress)
 	if err != nil {
@@ -82,7 +86,7 @@ func main() {
 	}
 	log.Infof("starting grpc server on %s", config.StorageServiceAddress)
 	if err = grpcServer.Serve(listener); err != nil {
-		log.WithError(err).Error("failed to start grpc server")
+		log.WithError(err).Fatal("failed to start grpc server")
 	}
 }
 
@@ -94,4 +98,24 @@ func SetUpLogger() {
 	if os.Getenv("QA_DEBUG") == "True" {
 		log.SetLevel(log.DebugLevel)
 	}
+}
+
+func runStorageKafkaConsumers(productRepository repository.Product, appMetrics *metrics.Metrics) {
+	productCreateConsumer := &consumers.ProductCreateConsumer{
+		ProductRepository: productRepository,
+		Metrics:           appMetrics,
+	}
+	go productCreateConsumer.StartConsuming(context.Background())
+
+	productUpdateConsumer := &consumers.ProductUpdateConsumer{
+		ProductRepository: productRepository,
+		Metrics:           appMetrics,
+	}
+	go productUpdateConsumer.StartConsuming(context.Background())
+
+	productDeleteConsumer := &consumers.ProductDeleteConsumer{
+		ProductRepository: productRepository,
+		Metrics:           appMetrics,
+	}
+	go productDeleteConsumer.StartConsuming(context.Background())
 }

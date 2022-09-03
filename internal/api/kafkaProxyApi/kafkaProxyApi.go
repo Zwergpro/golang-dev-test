@@ -1,17 +1,19 @@
-//go:generate mockgen -source ./proxyApi.go -destination=./mock/storage.go -package=mock_storage
-
-package proxyApi
+package kafkaProxyApi
 
 import (
 	"context"
+	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
+	"go.opentelemetry.io/otel/propagation"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 	"homework-1/internal/metrics"
 	"homework-1/internal/models/products"
-	pbStorage "homework-1/pkg/api/storage/v1"
-	pbApi "homework-1/pkg/api/v1"
+	pbStorage "homework-1/pkg/api/storage/v2"
+	pbApi "homework-1/pkg/api/v2"
 	"io"
 	"strings"
 	"time"
@@ -36,6 +38,7 @@ type implementation struct {
 
 type Deps struct {
 	StorageClient StorageServiceClient
+	Producer      sarama.SyncProducer
 	Metrics       *metrics.Metrics
 }
 
@@ -46,7 +49,7 @@ func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListR
 	log.Infof("ProductList request metadata: %v", md)
 	log.Debugf("ProductList request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	pageNum := in.GetPage()
@@ -93,7 +96,7 @@ func (i *implementation) ProductGet(ctx context.Context, in *pbApi.ProductGetReq
 	log.Infof("ProductGet request metadata: %v", md)
 	log.Debugf("ProductGet request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
@@ -124,7 +127,7 @@ func (i *implementation) ProductCreate(ctx context.Context, in *pbApi.ProductCre
 	log.Infof("ProductCreate request metadata: %v", md)
 	log.Debugf("ProductCreate request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	if errs := products.ValidateProductFields(in.GetName(), in.GetPrice(), in.GetQuantity()); len(errs) > 0 {
@@ -136,27 +139,36 @@ func (i *implementation) ProductCreate(ctx context.Context, in *pbApi.ProductCre
 		return nil, status.Error(codes.InvalidArgument, strings.Join(errStrings, "; "))
 	}
 
-	request := pbStorage.ProductCreateRequest{
+	requestData, err := proto.Marshal(&pbStorage.ProductCreateRequest{
 		Name:     in.GetName(),
 		Price:    in.GetPrice(),
 		Quantity: in.GetQuantity(),
+	})
+	if err != nil {
+		i.deps.Metrics.FailedRequestCounter.Inc()
+		log.WithError(err).Error("ProductCreate: proto.Marshal: internal error")
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
-	product, err := i.deps.StorageClient.ProductCreate(ctx, &request)
+
+	msg := sarama.ProducerMessage{
+		Topic: "productCreate",
+		Value: sarama.ByteEncoder(requestData),
+	}
+
+	propagator := propagation.TraceContext{}
+	propagator.Inject(ctx, otelsarama.NewProducerMessageCarrier(&msg))
+
+	_, _, err = i.deps.Producer.SendMessage(&msg)
 	if err != nil {
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.WithError(err).Error("StorageClient: ProductCreate: internal error")
+		log.WithError(err).Error("ProductCreate: Producer: SendMessage: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	i.deps.Metrics.SuccessfulRequestCounter.Inc()
-	return &pbApi.ProductCreateResponse{
-		Id:       product.GetId(),
-		Name:     product.GetName(),
-		Price:    product.GetPrice(),
-		Quantity: product.GetQuantity(),
-	}, nil
+	return &pbApi.ProductCreateResponse{}, nil
 }
 
 func (i *implementation) ProductUpdate(ctx context.Context, in *pbApi.ProductUpdateRequest) (*pbApi.ProductUpdateResponse, error) {
@@ -166,7 +178,7 @@ func (i *implementation) ProductUpdate(ctx context.Context, in *pbApi.ProductUpd
 	log.Infof("ProductUpdate request metadata: %v", md)
 	log.Debugf("ProductUpdate request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	if errs := products.ValidateProductFields(in.GetName(), in.GetPrice(), in.GetQuantity()); len(errs) > 0 {
@@ -178,32 +190,36 @@ func (i *implementation) ProductUpdate(ctx context.Context, in *pbApi.ProductUpd
 		return nil, status.Error(codes.InvalidArgument, strings.Join(errStrings, "; "))
 	}
 
-	request := pbStorage.ProductUpdateRequest{
+	requestData, err := proto.Marshal(&pbStorage.ProductUpdateRequest{
 		Id:       in.GetId(),
 		Name:     in.GetName(),
 		Price:    in.GetPrice(),
 		Quantity: in.GetQuantity(),
+	})
+	if err != nil {
+		i.deps.Metrics.FailedRequestCounter.Inc()
+		log.WithError(err).Error("ProductUpdate: proto.Marshal: internal error")
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 
+	msg := sarama.ProducerMessage{
+		Topic: "productUpdate",
+		Value: sarama.ByteEncoder(requestData),
+	}
+
+	propagator := propagation.TraceContext{}
+	propagator.Inject(ctx, otelsarama.NewProducerMessageCarrier(&msg))
+
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
-	product, err := i.deps.StorageClient.ProductUpdate(ctx, &request)
+	_, _, err = i.deps.Producer.SendMessage(&msg)
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
-			return nil, status.Error(codes.NotFound, "product not found")
-		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.WithError(err).Error("StorageClient: ProductUpdate: internal error")
+		log.WithError(err).Error("productUpdate: Producer: SendMessage: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	i.deps.Metrics.SuccessfulRequestCounter.Inc()
-	return &pbApi.ProductUpdateResponse{
-		Id:       product.GetId(),
-		Name:     product.GetName(),
-		Price:    product.GetPrice(),
-		Quantity: product.GetQuantity(),
-	}, nil
+	return &pbApi.ProductUpdateResponse{}, nil
 }
 
 func (i *implementation) ProductDelete(ctx context.Context, in *pbApi.ProductDeleteRequest) (*pbApi.ProductDeleteResponse, error) {
@@ -213,18 +229,29 @@ func (i *implementation) ProductDelete(ctx context.Context, in *pbApi.ProductDel
 	log.Infof("ProductDelete request metadata: %v", md)
 	log.Debugf("ProductDelete request data: %v", in)
 
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
-	i.deps.Metrics.OutgoingRequestCounter.Inc()
-	_, err := i.deps.StorageClient.ProductDelete(ctx, &pbStorage.ProductDeleteRequest{Id: in.GetId()})
+	requestData, err := proto.Marshal(&pbStorage.ProductDeleteRequest{Id: in.GetId()})
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			i.deps.Metrics.UnsuccessfulRequestCounter.Inc()
-			return nil, status.Error(codes.NotFound, "product not found")
-		}
 		i.deps.Metrics.FailedRequestCounter.Inc()
-		log.WithError(err).Error("StorageClient: ProductDelete: internal error")
+		log.WithError(err).Error("ProductDelete: proto.Marshal: internal error")
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	msg := sarama.ProducerMessage{
+		Topic: "productDelete",
+		Value: sarama.ByteEncoder(requestData),
+	}
+
+	propagator := propagation.TraceContext{}
+	propagator.Inject(ctx, otelsarama.NewProducerMessageCarrier(&msg))
+
+	i.deps.Metrics.OutgoingRequestCounter.Inc()
+	_, _, err = i.deps.Producer.SendMessage(&msg)
+	if err != nil {
+		i.deps.Metrics.FailedRequestCounter.Inc()
+		log.WithError(err).Error("ProductDelete: Producer: SendMessage: internal error")
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
