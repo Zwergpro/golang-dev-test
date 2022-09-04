@@ -53,8 +53,6 @@ func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListR
 	log.Infof("ProductList request metadata: %v", md)
 	log.Debugf("ProductList request data: %v", in)
 
-	var result []*pbApi.ProductListResponse_Product
-
 	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
@@ -70,6 +68,7 @@ func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListR
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
+	var result []*pbApi.ProductListResponse_Product
 	for {
 		product, err := productStream.Recv()
 		if err == io.EOF {
