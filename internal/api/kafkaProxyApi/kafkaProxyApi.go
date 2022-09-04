@@ -2,6 +2,8 @@ package kafkaProxyApi
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
@@ -10,6 +12,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"homework-1/internal/cache"
 	"homework-1/internal/metrics"
 	"homework-1/internal/models/products"
 	pbStorage "homework-1/pkg/api/storage/v2"
@@ -40,6 +43,7 @@ type Deps struct {
 	StorageClient StorageServiceClient
 	Producer      sarama.SyncProducer
 	Metrics       *metrics.Metrics
+	Cache         cache.KVCache
 }
 
 func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListRequest) (*pbApi.ProductListResponse, error) {
@@ -49,11 +53,35 @@ func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListR
 	log.Infof("ProductList request metadata: %v", md)
 	log.Debugf("ProductList request data: %v", in)
 
+	var result []*pbApi.ProductListResponse_Product
+
 	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
 	defer cancel()
 
 	pageNum := in.GetPage()
 	pageSize := in.GetSize()
+
+	val, err := i.deps.Cache.Get(ctx, fmt.Sprintf("products:page:%d:size:%d", pageNum, pageSize))
+	if err == nil {
+		var cachedProducts []*products.Product
+		if err = json.Unmarshal([]byte(val), &cachedProducts); err != nil {
+			log.WithError(err).Error("ProductList: unmarshal products from cache")
+		} else {
+			for _, p := range cachedProducts {
+				result = append(result, &pbApi.ProductListResponse_Product{
+					Id:       p.GetId(),
+					Name:     p.GetName(),
+					Price:    p.GetPrice(),
+					Quantity: p.GetQuantity(),
+				})
+			}
+
+			i.deps.Metrics.SuccessfulRequestCounter.Inc()
+			return &pbApi.ProductListResponse{
+				Products: result,
+			}, nil
+		}
+	}
 
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
 	request := pbStorage.ProductListRequest{Page: &pageNum, Size: &pageSize}
@@ -64,7 +92,6 @@ func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListR
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	var result []*pbApi.ProductListResponse_Product
 	for {
 		product, err := productStream.Recv()
 		if err == io.EOF {

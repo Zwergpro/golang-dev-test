@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"homework-1/config"
 	"homework-1/internal/api/kafkaProxyApi"
+	redisCache "homework-1/internal/cache/redis"
 	"homework-1/internal/metrics"
 	"homework-1/internal/opentelemetry"
 	pbStorage "homework-1/pkg/api/storage/v2"
@@ -59,11 +60,13 @@ func main() {
 		log.WithError(err).Fatal("kafka: NewSyncProducer")
 	}
 	syncProducer = otelsarama.WrapSyncProducer(cfg, syncProducer)
+	cache := redisCache.New(config.GetRedisOpts(), appMetrics)
 
 	deps := kafkaProxyApi.Deps{
 		StorageClient: client,
 		Metrics:       appMetrics,
 		Producer:      syncProducer,
+		Cache:         cache,
 	}
 	pbApi.RegisterApiServiceServer(grpcServer, kafkaProxyApi.New(deps))
 

@@ -53,6 +53,17 @@ func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageSe
 		return status.Error(codes.Internal, "internal error")
 	}
 
+	cacheData, err := json.Marshal(allProducts)
+	if err != nil {
+		log.WithError(err).Error("ProductList: marshal products to cache")
+	} else {
+		cacheKey := fmt.Sprintf("products:page:%d:size:%d", in.GetPage(), in.GetSize())
+		err = i.deps.Cache.Set(ctx, cacheKey, string(cacheData), time.Minute*1)
+		if err != nil {
+			log.WithError(err).Error("ProductList: set products to cache")
+		}
+	}
+
 	for _, product := range allProducts {
 		productResponse := pb.ProductListResponse{
 			Id:       product.GetId(),
