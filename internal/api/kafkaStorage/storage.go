@@ -80,6 +80,42 @@ func (i *implementation) ProductList(in *pb.ProductListRequest, srv pb.StorageSe
 	return nil
 }
 
+func (i *implementation) AsyncProductList(ctx context.Context, in *pb.AsyncProductListRequest) (*pb.AsyncProductListResponse, error) {
+	i.deps.Metrics.IncomingRequestCounter.Inc()
+
+	md, _ := metadata.FromIncomingContext(ctx)
+	log.Infof("AsyncProductList request metadata: %v", md)
+	log.Debugf("AsyncProductList request data: %v", in)
+
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	allProducts, err := i.deps.ProductRepository.GetAllProducts(ctx, in.GetPage(), in.GetSize())
+	if err != nil {
+		i.deps.Metrics.FailedRequestCounter.Inc()
+		log.WithError(err).Error("ProductRepository: GetAllProducts: internal error")
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	cacheData, err := json.Marshal(allProducts)
+	if err != nil {
+		log.WithError(err).Error("AsyncProductList: marshal products to cache")
+		i.deps.Metrics.FailedRequestCounter.Inc()
+		return nil, status.Error(codes.Internal, "internal error")
+	} else {
+		cacheKey := fmt.Sprintf("products:page:%d:size:%d", in.GetPage(), in.GetSize())
+		err = i.deps.Cache.Set(ctx, cacheKey, string(cacheData), time.Minute*1)
+		if err != nil {
+			log.WithError(err).Error("AsyncProductList: set products to cache")
+			i.deps.Metrics.FailedRequestCounter.Inc()
+			return nil, status.Error(codes.Internal, "internal error")
+		}
+	}
+
+	i.deps.Metrics.SuccessfulRequestCounter.Inc()
+	return &pb.AsyncProductListResponse{}, nil
+}
+
 func (i *implementation) ProductGet(ctx context.Context, in *pb.ProductGetRequest) (*pb.ProductGetResponse, error) {
 	i.deps.Metrics.IncomingRequestCounter.Inc()
 

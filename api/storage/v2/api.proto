@@ -5,6 +5,7 @@ option go_package = "homework-1/pkg/storage;storage";
 
 service StorageService {
   rpc ProductList(ProductListRequest) returns (stream ProductListResponse) {}
+  rpc AsyncProductList(AsyncProductListRequest) returns (AsyncProductListResponse) {}
   rpc ProductGet(ProductGetRequest) returns (ProductGetResponse) {}
   rpc ProductCreate(ProductCreateRequest) returns (ProductCreateResponse) {}
   rpc ProductUpdate(ProductUpdateRequest) returns (ProductUpdateResponse) {}
@@ -28,6 +29,18 @@ message ProductListResponse {
   uint64 price = 3;
   uint64 quantity = 4;
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// AsyncProductList endpoint messages
+// ---------------------------------------------------------------------------------------------------------------------
+
+message AsyncProductListRequest {
+  optional uint64 page = 1;
+  optional uint64 size = 2;
+}
+
+message AsyncProductListResponse {}
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ProductGet endpoint messages

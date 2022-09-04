@@ -6,6 +6,10 @@ GET http://localhost:9080/debug/vars
 GRPC localhost:8080/api.storage.v2.StorageService/ProductList
 
 
+### AsyncProductList
+GRPC localhost:8080/api.storage.v2.StorageService/AsyncProductList
+
+
 ### ProductGet
 GRPC localhost:8080/api.storage.v2.StorageService/ProductGet
 
