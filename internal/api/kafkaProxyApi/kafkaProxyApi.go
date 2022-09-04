@@ -61,28 +61,6 @@ func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListR
 	pageNum := in.GetPage()
 	pageSize := in.GetSize()
 
-	val, err := i.deps.Cache.Get(ctx, fmt.Sprintf("products:page:%d:size:%d", pageNum, pageSize))
-	if err == nil {
-		var cachedProducts []*products.Product
-		if err = json.Unmarshal([]byte(val), &cachedProducts); err != nil {
-			log.WithError(err).Error("ProductList: unmarshal products from cache")
-		} else {
-			for _, p := range cachedProducts {
-				result = append(result, &pbApi.ProductListResponse_Product{
-					Id:       p.GetId(),
-					Name:     p.GetName(),
-					Price:    p.GetPrice(),
-					Quantity: p.GetQuantity(),
-				})
-			}
-
-			i.deps.Metrics.SuccessfulRequestCounter.Inc()
-			return &pbApi.ProductListResponse{
-				Products: result,
-			}, nil
-		}
-	}
-
 	i.deps.Metrics.OutgoingRequestCounter.Inc()
 	request := pbStorage.ProductListRequest{Page: &pageNum, Size: &pageSize}
 	productStream, err := i.deps.StorageClient.ProductList(ctx, &request)
