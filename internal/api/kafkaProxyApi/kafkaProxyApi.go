@@ -2,6 +2,8 @@ package kafkaProxyApi
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
@@ -10,6 +12,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"homework-1/internal/cache"
 	"homework-1/internal/metrics"
 	"homework-1/internal/models/products"
 	pbStorage "homework-1/pkg/api/storage/v2"
@@ -40,6 +43,7 @@ type Deps struct {
 	StorageClient StorageServiceClient
 	Producer      sarama.SyncProducer
 	Metrics       *metrics.Metrics
+	Cache         cache.KVCache
 }
 
 func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListRequest) (*pbApi.ProductListResponse, error) {
@@ -85,6 +89,62 @@ func (i *implementation) ProductList(ctx context.Context, in *pbApi.ProductListR
 
 	i.deps.Metrics.SuccessfulRequestCounter.Inc()
 	return &pbApi.ProductListResponse{
+		Products: result,
+	}, nil
+}
+
+func (i *implementation) AsyncProductList(ctx context.Context, in *pbApi.AsyncProductListRequest) (*pbApi.AsyncProductListResponse, error) {
+	i.deps.Metrics.IncomingRequestCounter.Inc()
+
+	md, _ := metadata.FromIncomingContext(ctx)
+	log.Infof("ProductList request metadata: %v", md)
+	log.Debugf("ProductList request data: %v", in)
+
+	var result []*pbApi.AsyncProductListResponse_Product
+
+	ctx, cancel := context.WithTimeout(ctx, maxTimeout)
+	defer cancel()
+
+	pageNum := in.GetPage()
+	pageSize := in.GetSize()
+
+	val, err := i.deps.Cache.Get(ctx, fmt.Sprintf("products:page:%d:size:%d", pageNum, pageSize))
+	if err == nil {
+		var cachedProducts []*products.Product
+		if err = json.Unmarshal([]byte(val), &cachedProducts); err != nil {
+			log.WithError(err).Error("ProductList: unmarshal products from cache")
+		} else {
+			log.Debugf("AsyncProductList: got products from cache")
+			for _, p := range cachedProducts {
+				result = append(result, &pbApi.AsyncProductListResponse_Product{
+					Id:       p.GetId(),
+					Name:     p.GetName(),
+					Price:    p.GetPrice(),
+					Quantity: p.GetQuantity(),
+				})
+			}
+
+			i.deps.Metrics.SuccessfulRequestCounter.Inc()
+			return &pbApi.AsyncProductListResponse{
+				Ready:    true,
+				Products: result,
+			}, nil
+		}
+	}
+
+	log.Debugf("AsyncProductList: send request for products")
+	i.deps.Metrics.OutgoingRequestCounter.Inc()
+	request := pbStorage.AsyncProductListRequest{Page: &pageNum, Size: &pageSize}
+	_, err = i.deps.StorageClient.AsyncProductList(ctx, &request)
+	if err != nil {
+		i.deps.Metrics.FailedRequestCounter.Inc()
+		log.WithError(err).Error("StorageClient: AsyncProductList: internal error")
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	i.deps.Metrics.SuccessfulRequestCounter.Inc()
+	return &pbApi.AsyncProductListResponse{
+		Ready:    false,
 		Products: result,
 	}, nil
 }

@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApiServiceClient interface {
 	ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (*ProductListResponse, error)
+	AsyncProductList(ctx context.Context, in *AsyncProductListRequest, opts ...grpc.CallOption) (*AsyncProductListResponse, error)
 	ProductGet(ctx context.Context, in *ProductGetRequest, opts ...grpc.CallOption) (*ProductGetResponse, error)
 	ProductCreate(ctx context.Context, in *ProductCreateRequest, opts ...grpc.CallOption) (*ProductCreateResponse, error)
 	ProductUpdate(ctx context.Context, in *ProductUpdateRequest, opts ...grpc.CallOption) (*ProductUpdateResponse, error)
@@ -40,6 +41,15 @@ func NewApiServiceClient(cc grpc.ClientConnInterface) ApiServiceClient {
 func (c *apiServiceClient) ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (*ProductListResponse, error) {
 	out := new(ProductListResponse)
 	err := c.cc.Invoke(ctx, "/api.v2.ApiService/ProductList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *apiServiceClient) AsyncProductList(ctx context.Context, in *AsyncProductListRequest, opts ...grpc.CallOption) (*AsyncProductListResponse, error) {
+	out := new(AsyncProductListResponse)
+	err := c.cc.Invoke(ctx, "/api.v2.ApiService/AsyncProductList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +97,7 @@ func (c *apiServiceClient) ProductDelete(ctx context.Context, in *ProductDeleteR
 // for forward compatibility
 type ApiServiceServer interface {
 	ProductList(context.Context, *ProductListRequest) (*ProductListResponse, error)
+	AsyncProductList(context.Context, *AsyncProductListRequest) (*AsyncProductListResponse, error)
 	ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error)
 	ProductCreate(context.Context, *ProductCreateRequest) (*ProductCreateResponse, error)
 	ProductUpdate(context.Context, *ProductUpdateRequest) (*ProductUpdateResponse, error)
@@ -100,6 +111,9 @@ type UnimplementedApiServiceServer struct {
 
 func (UnimplementedApiServiceServer) ProductList(context.Context, *ProductListRequest) (*ProductListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductList not implemented")
+}
+func (UnimplementedApiServiceServer) AsyncProductList(context.Context, *AsyncProductListRequest) (*AsyncProductListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AsyncProductList not implemented")
 }
 func (UnimplementedApiServiceServer) ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductGet not implemented")
@@ -140,6 +154,24 @@ func _ApiService_ProductList_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApiServiceServer).ProductList(ctx, req.(*ProductListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApiService_AsyncProductList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AsyncProductListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServiceServer).AsyncProductList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.v2.ApiService/AsyncProductList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServiceServer).AsyncProductList(ctx, req.(*AsyncProductListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -226,6 +258,10 @@ var ApiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProductList",
 			Handler:    _ApiService_ProductList_Handler,
+		},
+		{
+			MethodName: "AsyncProductList",
+			Handler:    _ApiService_AsyncProductList_Handler,
 		},
 		{
 			MethodName: "ProductGet",

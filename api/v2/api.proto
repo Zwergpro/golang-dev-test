@@ -11,6 +11,11 @@ service ApiService {
       get: "/api/v1/users"
     };
   }
+  rpc AsyncProductList(AsyncProductListRequest) returns (AsyncProductListResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users/async"
+    };
+  }
   rpc ProductGet(ProductGetRequest) returns (ProductGetResponse) {
     option (google.api.http) = {
       get: "/api/v1/users/{id}"
@@ -47,6 +52,27 @@ message ProductListRequest {
 
 message ProductListResponse {
   repeated Product products = 1;
+
+  message Product {
+    uint64 id = 1;
+    string name = 2;
+    uint64 price = 3;
+    uint64 quantity = 4;
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// AsyncProductList endpoint messages
+// ---------------------------------------------------------------------------------------------------------------------
+
+message AsyncProductListRequest {
+    optional uint64 page = 1;
+    optional uint64 size = 2;
+}
+
+message AsyncProductListResponse {
+  bool ready = 1;
+  repeated Product products = 2;
 
   message Product {
     uint64 id = 1;

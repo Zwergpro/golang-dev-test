@@ -2,11 +2,13 @@ package consumers
 
 import (
 	"context"
+	"fmt"
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
 	"google.golang.org/protobuf/proto"
 	"homework-1/config"
+	"homework-1/internal/cache"
 	"homework-1/internal/metrics"
 	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/storage/v1"
@@ -16,6 +18,7 @@ import (
 type ProductDeleteConsumer struct {
 	ProductRepository repository.Product
 	Metrics           *metrics.Metrics
+	Cache             cache.KVCache
 }
 
 func (c *ProductDeleteConsumer) Setup(_ sarama.ConsumerGroupSession) error {
@@ -58,6 +61,10 @@ func (c *ProductDeleteConsumer) ConsumeClaim(session sarama.ConsumerGroupSession
 			} else {
 				c.Metrics.SuccessfulRequestCounter.Inc()
 				log.Infof("Product deleted: %d", in.GetId())
+			}
+
+			if err = c.Cache.Del(ctx, fmt.Sprintf("product:%d", in.GetId())); err != nil {
+				log.WithError(err).Error("ProductDeleteConsumer: ConsumeClaim: del product from cache")
 			}
 		}
 	}

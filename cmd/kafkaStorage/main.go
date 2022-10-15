@@ -9,6 +9,7 @@ import (
 	"homework-1/config"
 	"homework-1/internal/api/kafkaStorage"
 	"homework-1/internal/api/kafkaStorage/consumers"
+	redisCache "homework-1/internal/cache/redis"
 	"homework-1/internal/metrics"
 	"homework-1/internal/opentelemetry"
 	"homework-1/internal/repository"
@@ -71,11 +72,14 @@ func main() {
 		}
 	}()
 
-	runStorageKafkaConsumers(postgresRepository.NewRepository(pool), appMetrics)
+	cache := redisCache.New(config.GetRedisOpts(), appMetrics)
+
+	runStorageKafkaConsumers(postgresRepository.NewRepository(pool), appMetrics, cache)
 
 	deps := kafkaStorage.Deps{
 		ProductRepository: postgresRepository.NewRepository(pool),
 		Metrics:           appMetrics,
+		Cache:             cache,
 	}
 
 	pbStorage.RegisterStorageServiceServer(grpcServer, kafkaStorage.New(deps))
@@ -100,22 +104,25 @@ func SetUpLogger() {
 	}
 }
 
-func runStorageKafkaConsumers(productRepository repository.Product, appMetrics *metrics.Metrics) {
+func runStorageKafkaConsumers(productRepository repository.Product, appMetrics *metrics.Metrics, cache *redisCache.Cache) {
 	productCreateConsumer := &consumers.ProductCreateConsumer{
 		ProductRepository: productRepository,
 		Metrics:           appMetrics,
+		Cache:             cache,
 	}
 	go productCreateConsumer.StartConsuming(context.Background())
 
 	productUpdateConsumer := &consumers.ProductUpdateConsumer{
 		ProductRepository: productRepository,
 		Metrics:           appMetrics,
+		Cache:             cache,
 	}
 	go productUpdateConsumer.StartConsuming(context.Background())
 
 	productDeleteConsumer := &consumers.ProductDeleteConsumer{
 		ProductRepository: productRepository,
 		Metrics:           appMetrics,
+		Cache:             cache,
 	}
 	go productDeleteConsumer.StartConsuming(context.Background())
 }

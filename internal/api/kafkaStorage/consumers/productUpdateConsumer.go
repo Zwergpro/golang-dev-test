@@ -2,11 +2,14 @@ package consumers
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/Shopify/sarama/otelsarama"
 	"google.golang.org/protobuf/proto"
 	"homework-1/config"
+	"homework-1/internal/cache"
 	"homework-1/internal/metrics"
 	"homework-1/internal/repository"
 	pb "homework-1/pkg/api/storage/v1"
@@ -16,6 +19,7 @@ import (
 type ProductUpdateConsumer struct {
 	ProductRepository repository.Product
 	Metrics           *metrics.Metrics
+	Cache             cache.KVCache
 }
 
 func (c *ProductUpdateConsumer) Setup(_ sarama.ConsumerGroupSession) error {
@@ -62,12 +66,23 @@ func (c *ProductUpdateConsumer) ConsumeClaim(session sarama.ConsumerGroupSession
 			product.Price = in.GetPrice()
 			product.Quantity = in.GetQuantity()
 
-			if product, err = c.ProductRepository.UpdateProduct(ctx, *product); err != nil {
+			product, err = c.ProductRepository.UpdateProduct(ctx, *product)
+			if err != nil {
 				c.Metrics.FailedRequestCounter.Inc()
 				log.WithError(err).Error("ProductRepository: ProductUpdate: internal error")
 			} else {
 				c.Metrics.SuccessfulRequestCounter.Inc()
 				log.Infof("Product updated: %v", product)
+			}
+
+			if cacheData, err := json.Marshal(*product); err != nil {
+				log.WithError(err).Error("ProductUpdateConsumer: ConsumeClaim: marshal product to cache")
+			} else {
+				key := fmt.Sprintf("product:%d", product.GetId())
+				err = c.Cache.Set(ctx, key, string(cacheData), time.Minute*10)
+				if err != nil {
+					log.WithError(err).Error("ProductUpdateConsumer: ConsumeClaim: set product to cache")
+				}
 			}
 		}
 	}

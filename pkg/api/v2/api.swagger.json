@@ -84,6 +84,44 @@
         ]
       }
     },
+    "/api/v1/users/async": {
+      "get": {
+        "operationId": "ApiService_AsyncProductList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2AsyncProductListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "ApiService"
+        ]
+      }
+    },
     "/api/v1/users/{id}": {
       "get": {
         "operationId": "ApiService_ProductGet",
@@ -196,26 +234,6 @@
     }
   },
   "definitions": {
-    "ProductListResponseProduct": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "name": {
-          "type": "string"
-        },
-        "price": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "quantity": {
-          "type": "string",
-          "format": "uint64"
-        }
-      }
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -240,6 +258,40 @@
           "items": {
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v2AsyncProductListResponse": {
+      "type": "object",
+      "properties": {
+        "ready": {
+          "type": "boolean"
+        },
+        "products": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2AsyncProductListResponseProduct"
+          }
+        }
+      }
+    },
+    "v2AsyncProductListResponseProduct": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "quantity": {
+          "type": "string",
+          "format": "uint64"
         }
       }
     },
@@ -291,8 +343,28 @@
         "products": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ProductListResponseProduct"
+            "$ref": "#/definitions/v2ProductListResponseProduct"
           }
+        }
+      }
+    },
+    "v2ProductListResponseProduct": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "quantity": {
+          "type": "string",
+          "format": "uint64"
         }
       }
     },

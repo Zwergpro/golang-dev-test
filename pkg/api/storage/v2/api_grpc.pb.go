@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
 	ProductList(ctx context.Context, in *ProductListRequest, opts ...grpc.CallOption) (StorageService_ProductListClient, error)
+	AsyncProductList(ctx context.Context, in *AsyncProductListRequest, opts ...grpc.CallOption) (*AsyncProductListResponse, error)
 	ProductGet(ctx context.Context, in *ProductGetRequest, opts ...grpc.CallOption) (*ProductGetResponse, error)
 	ProductCreate(ctx context.Context, in *ProductCreateRequest, opts ...grpc.CallOption) (*ProductCreateResponse, error)
 	ProductUpdate(ctx context.Context, in *ProductUpdateRequest, opts ...grpc.CallOption) (*ProductUpdateResponse, error)
@@ -69,6 +70,15 @@ func (x *storageServiceProductListClient) Recv() (*ProductListResponse, error) {
 	return m, nil
 }
 
+func (c *storageServiceClient) AsyncProductList(ctx context.Context, in *AsyncProductListRequest, opts ...grpc.CallOption) (*AsyncProductListResponse, error) {
+	out := new(AsyncProductListResponse)
+	err := c.cc.Invoke(ctx, "/api.storage.v2.StorageService/AsyncProductList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *storageServiceClient) ProductGet(ctx context.Context, in *ProductGetRequest, opts ...grpc.CallOption) (*ProductGetResponse, error) {
 	out := new(ProductGetResponse)
 	err := c.cc.Invoke(ctx, "/api.storage.v2.StorageService/ProductGet", in, out, opts...)
@@ -110,6 +120,7 @@ func (c *storageServiceClient) ProductDelete(ctx context.Context, in *ProductDel
 // for forward compatibility
 type StorageServiceServer interface {
 	ProductList(*ProductListRequest, StorageService_ProductListServer) error
+	AsyncProductList(context.Context, *AsyncProductListRequest) (*AsyncProductListResponse, error)
 	ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error)
 	ProductCreate(context.Context, *ProductCreateRequest) (*ProductCreateResponse, error)
 	ProductUpdate(context.Context, *ProductUpdateRequest) (*ProductUpdateResponse, error)
@@ -123,6 +134,9 @@ type UnimplementedStorageServiceServer struct {
 
 func (UnimplementedStorageServiceServer) ProductList(*ProductListRequest, StorageService_ProductListServer) error {
 	return status.Errorf(codes.Unimplemented, "method ProductList not implemented")
+}
+func (UnimplementedStorageServiceServer) AsyncProductList(context.Context, *AsyncProductListRequest) (*AsyncProductListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AsyncProductList not implemented")
 }
 func (UnimplementedStorageServiceServer) ProductGet(context.Context, *ProductGetRequest) (*ProductGetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProductGet not implemented")
@@ -168,6 +182,24 @@ type storageServiceProductListServer struct {
 
 func (x *storageServiceProductListServer) Send(m *ProductListResponse) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func _StorageService_AsyncProductList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AsyncProductListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).AsyncProductList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.storage.v2.StorageService/AsyncProductList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).AsyncProductList(ctx, req.(*AsyncProductListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _StorageService_ProductGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -249,6 +281,10 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "api.storage.v2.StorageService",
 	HandlerType: (*StorageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AsyncProductList",
+			Handler:    _StorageService_AsyncProductList_Handler,
+		},
 		{
 			MethodName: "ProductGet",
 			Handler:    _StorageService_ProductGet_Handler,

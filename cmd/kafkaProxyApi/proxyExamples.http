@@ -11,6 +11,15 @@ GRPC localhost:8081/api.v2.ApiService/ProductList
 #}
 
 
+### AsyncProductList
+GRPC localhost:8081/api.v2.ApiService/AsyncProductList
+
+//{
+//  "page": 2,
+//  "size": 2
+//}
+
+
 ### ProductGet
 GRPC localhost:8081/api.v2.ApiService/ProductGet
 
